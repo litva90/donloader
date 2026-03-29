@@ -186,7 +186,11 @@ class _HomePageState extends State<HomePage> {
       final video = await _yt.videos.get(url);
 
       // Получаем манифест со списком всех доступных потоков
-      final manifest = await _yt.videos.streamsClient.getManifest(video.id);
+      final manifest = await _yt.videos.streams.getManifest(video.id, ytClients: [
+        YoutubeApiClient.safari,
+        YoutubeApiClient.androidVr  
+      ]);
+      //final manifest = await _yt.videos.streamsClient.getManifest(video.id);
 
       final allStreams = <_VideoStreamInfo>[];
 
@@ -262,27 +266,31 @@ class _HomePageState extends State<HomePage> {
     double progressOffset = 0,
     double progressWeight = 1.0,
   }) async {
-    final stream = _yt.videos.streamsClient.get(streamInfo);
+    final stream = _yt.videos.streams.get(streamInfo);
+    //final stream = _yt.videos.streamsClient.get(streamInfo);
     final file = File(filePath);
-    final sink = file.openWrite();
+    final fileStream = file.openWrite();
+
+    // Pipe all the content of the stream into the file.
+    //await stream.pipe(fileStream);
 
     final totalBytes = streamInfo.size.totalBytes;
     var receivedBytes = 0;
 
-    // Читаем поток чанками и записываем в файл,
-    // обновляя прогресс с учётом смещения и веса
+    // // Читаем поток чанками и записываем в файл,
+    // // обновляя прогресс с учётом смещения и веса
     await for (final chunk in stream) {
-      sink.add(chunk);
+      fileStream.add(chunk);
       receivedBytes += chunk.length;
       setState(() {
         _downloadProgress =
             progressOffset + (receivedBytes / totalBytes) * progressWeight;
-      });
+       });
     }
 
     // Гарантируем, что все данные записаны на диск
-    await sink.flush();
-    await sink.close();
+    await fileStream.flush();
+    await fileStream.close();
   }
 
   /// Склеивает видео и аудио файлы в один с помощью ffmpeg.
