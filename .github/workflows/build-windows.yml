@@ -1,0 +1,43 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  # Ручной запуск из вкладки Actions
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      # Клонируем репозиторий
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Устанавливаем Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # Добавляем поддержку Windows-платформы в проект
+      - name: Enable Windows desktop
+        run: flutter create --platforms=windows .
+
+      # Устанавливаем зависимости
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Собираем Windows-приложение
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      # Загружаем артефакт для скачивания
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: donloader-windows
+          path: build/windows/x64/runner/Release/
