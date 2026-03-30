@@ -31,9 +31,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Скачиваем ffmpeg для бандла с приложением
+      - name: Download ffmpeg
+        run: |
+          curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+          7z x ffmpeg.zip -offmpeg_extracted
+          $ffmpegDir = Get-ChildItem -Path ffmpeg_extracted -Directory | Select-Object -First 1
+          Copy-Item "$($ffmpegDir.FullName)\bin\ffmpeg.exe" -Destination ffmpeg.exe
+        shell: pwsh
+
       # Собираем Windows-приложение
       - name: Build Windows release
         run: flutter build windows --release
+
+      # Копируем ffmpeg.exe в папку сборки рядом с exe приложения
+      - name: Bundle ffmpeg
+        run: Copy-Item ffmpeg.exe -Destination build/windows/x64/runner/Release/
+        shell: pwsh
 
       # Загружаем артефакт для скачивания
       - name: Upload Windows build artifact

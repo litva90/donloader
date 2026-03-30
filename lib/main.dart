@@ -15,7 +15,8 @@
 /// - [youtube_explode_dart] — извлечение метаданных и потоков видео с YouTube.
 /// - [file_picker] — нативный диалог сохранения файла.
 /// - [path_provider] — системная временная директория для промежуточных файлов.
-/// - [dart:io] — запись файлов на диск и вызов ffmpeg.
+/// - [dart:io] — запись файлов на диск и вызов ffmpeg (Windows fallback).
+/// - [ffmpeg_kit_flutter_new] — встроенный ffmpeg для Android, iOS и macOS.
 library;
 
 import 'dart:io';
@@ -24,6 +25,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 
 /// Точка входа приложения.
 void main() {
@@ -289,21 +292,53 @@ class _HomePageState extends State<HomePage> {
     await fileStream.close();
   }
 
-  /// Склеивает видео и аудио файлы в один с помощью системного ffmpeg.
+  /// Склеивает видео и аудио файлы в один с помощью ffmpeg.
   ///
   /// Параметры команды:
   /// - `-i` — входные файлы (видео и аудио).
   /// - `-c copy` — копирование без перекодирования (максимальная скорость).
   /// - `-y` — перезапись выходного файла без запроса.
   ///
-  /// Требует установленный ffmpeg в системе (например, через `brew install ffmpeg`).
-  /// Бросает исключение, если ffmpeg завершился с ошибкой.
+  /// На Android, iOS и macOS использует встроенный ffmpeg через [FFmpegKit].
+  /// На Windows вызывает ffmpeg.exe через [Process.run] — ищет рядом
+  /// с приложением (бандл), затем в системном PATH.
   Future<void> _mergeWithFfmpeg(
     String videoPath,
     String audioPath,
     String outputPath,
   ) async {
-    final result = await Process.run('ffmpeg', [
+    if (Platform.isWindows) {
+      // --- Windows: вызов через Process.run (бандл или PATH) ---
+      await _mergeWithFfmpegProcess(videoPath, audioPath, outputPath);
+    } else {
+      // --- Android, iOS, macOS: встроенный ffmpeg через FFmpegKit ---
+      final command =
+          '-i "$videoPath" -i "$audioPath" -c copy -y "$outputPath"';
+      final session = await FFmpegKit.execute(command);
+      final returnCode = await session.getReturnCode();
+
+      if (!ReturnCode.isSuccess(returnCode)) {
+        final logs = await session.getAllLogsAsString();
+        throw Exception(
+          'ffmpeg ошибка (код ${returnCode?.getValue()}): $logs',
+        );
+      }
+    }
+  }
+
+  /// Fallback-склейка через системный ffmpeg для Windows.
+  ///
+  /// Порядок поиска ffmpeg.exe:
+  /// 1. Рядом с исполняемым файлом приложения (бандл).
+  /// 2. В системном PATH.
+  Future<void> _mergeWithFfmpegProcess(
+    String videoPath,
+    String audioPath,
+    String outputPath,
+  ) async {
+    final ffmpegPath = await _findFfmpegExecutable();
+
+    final result = await Process.run(ffmpegPath, [
       '-i', videoPath,
       '-i', audioPath,
       '-c', 'copy',
@@ -313,6 +348,32 @@ class _HomePageState extends State<HomePage> {
     if (result.exitCode != 0) {
       throw Exception('ffmpeg ошибка (код ${result.exitCode}): ${result.stderr}');
     }
+  }
+
+  /// Определяет путь к ffmpeg.exe на Windows.
+  ///
+  /// Порядок поиска:
+  /// 1. Рядом с exe приложения (для бандла).
+  /// 2. В системном PATH.
+  Future<String> _findFfmpegExecutable() async {
+    // Проверяем ffmpeg.exe рядом с exe приложения
+    final exeDir = File(Platform.resolvedExecutable).parent.path;
+    final bundledPath = '$exeDir/ffmpeg.exe';
+    if (await File(bundledPath).exists()) {
+      return bundledPath;
+    }
+
+    // Проверяем наличие в системном PATH
+    final result = await Process.run('where', ['ffmpeg']);
+    if (result.exitCode == 0) {
+      return 'ffmpeg';
+    }
+
+    throw Exception(
+      'ffmpeg.exe не найден. '
+      'Поместите ffmpeg.exe рядом с приложением '
+      'или установите ffmpeg в системный PATH.',
+    );
   }
 
   /// Скачивает выбранный видеопоток [info] на диск.
