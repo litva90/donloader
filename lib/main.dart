@@ -267,12 +267,8 @@ class _HomePageState extends State<HomePage> {
     double progressWeight = 1.0,
   }) async {
     final stream = _yt.videos.streams.get(streamInfo);
-    //final stream = _yt.videos.streamsClient.get(streamInfo);
     final file = File(filePath);
     final fileStream = file.openWrite();
-
-    // Pipe all the content of the stream into the file.
-    //await stream.pipe(fileStream);
 
     final totalBytes = streamInfo.size.totalBytes;
     var receivedBytes = 0;
@@ -293,14 +289,14 @@ class _HomePageState extends State<HomePage> {
     await fileStream.close();
   }
 
-  /// Склеивает видео и аудио файлы в один с помощью ffmpeg.
+  /// Склеивает видео и аудио файлы в один с помощью системного ffmpeg.
   ///
-  /// Использует системный ffmpeg через `Process.run`.
-  /// Параметры:
+  /// Параметры команды:
   /// - `-i` — входные файлы (видео и аудио).
   /// - `-c copy` — копирование без перекодирования (максимальная скорость).
   /// - `-y` — перезапись выходного файла без запроса.
   ///
+  /// Требует установленный ffmpeg в системе (например, через `brew install ffmpeg`).
   /// Бросает исключение, если ffmpeg завершился с ошибкой.
   Future<void> _mergeWithFfmpeg(
     String videoPath,
@@ -308,11 +304,10 @@ class _HomePageState extends State<HomePage> {
     String outputPath,
   ) async {
     final result = await Process.run('ffmpeg', [
-      '-i', videoPath, // Входной видеофайл
-      '-i', audioPath, // Входной аудиофайл
-      '-c', 'copy', // Копировать потоки без перекодирования
-      '-y', // Перезаписать выходной файл, если существует
-      outputPath, // Путь для результата
+      '-i', videoPath,
+      '-i', audioPath,
+      '-c', 'copy',
+      '-y', outputPath,
     ]);
 
     if (result.exitCode != 0) {
