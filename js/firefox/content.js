@@ -1,8 +1,9 @@
 /// Donloader Content Script
 ///
 /// Внедряется на страницы YouTube и добавляет кнопку «Видео» над правым
-/// верхним углом видеоплеера. При нажатии отображается выпадающий список
-/// с доступными форматами и разрешениями из манифеста видео.
+/// верхним углом видеоплеера. Форматы загружаются автоматически в фоне
+/// при открытии страницы видео. Кнопка появляется только после успешной
+/// загрузки списка форматов.
 ///
 /// Выбранный формат и URL страницы отправляются в десктопное приложение
 /// Donloader через локальный HTTP-сервер (127.0.0.1:18734).
@@ -109,6 +110,7 @@
   ///
   /// Кнопка размещается над правым верхним углом элемента #movie_player.
   /// Контейнер вставляется в #player с абсолютным позиционированием.
+  /// Вызывается только после успешной загрузки данных о форматах.
   function createUI() {
     if (btnContainer) return;
 
@@ -149,28 +151,16 @@
 
   /// Открывает или закрывает выпадающий список форматов.
   ///
-  /// При открытии извлекает данные из манифеста видео и отображает
-  /// доступные форматы с разрешением, контейнером и размером.
-  async function toggleDropdown() {
+  /// Данные уже загружены в фоне — просто отображает или скрывает список.
+  function toggleDropdown() {
     if (isDropdownOpen) {
       dropdown.style.display = 'none';
       isDropdownOpen = false;
       return;
     }
 
-    // Показываем индикатор загрузки
-    dropdown.innerHTML = '<div class="donloader-loading">Загрузка форматов...</div>';
     dropdown.style.display = 'block';
     isDropdownOpen = true;
-
-    // Извлекаем данные из манифеста видео
-    videoData = await extractPlayerResponse();
-
-    if (!videoData) {
-      dropdown.innerHTML = '<div class="donloader-error">Не удалось получить данные видео</div>';
-      return;
-    }
-
     renderDropdown();
   }
 
@@ -237,18 +227,19 @@
 
   /// Отправляет выбранный формат и URL видео в приложение Donloader.
   ///
-  /// Делает GET-запрос к локальному HTTP-серверу приложения.
-  /// Если приложение не запущено, показывает уведомление об ошибке.
+  /// В Firefox fetch из content script выполняется от имени страницы,
+  /// поэтому запрос проксируется через background script расширения.
   async function sendToApp(quality) {
     const url = window.location.href;
+    const apiUrl = `${DONLOADER_API}/download?url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}`;
 
     try {
-      const response = await fetch(
-        `${DONLOADER_API}/download?url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}`,
-        { method: 'GET' }
-      );
+      const result = await browser.runtime.sendMessage({
+        type: 'donloader-download',
+        url: apiUrl,
+      });
 
-      if (response.ok) {
+      if (result && result.ok) {
         dropdown.style.display = 'none';
         isDropdownOpen = false;
         showNotification('Запрос отправлен в Donloader');
@@ -304,6 +295,27 @@
   });
 
   // ---------------------------------------------------------------------------
+  // Фоновая загрузка данных видео
+  // ---------------------------------------------------------------------------
+
+  /// Загружает данные о форматах в фоне и показывает кнопку при успехе.
+  ///
+  /// Ожидает появления плеера в DOM, затем запрашивает манифест видео.
+  /// Кнопка «Видео» создаётся только после успешного получения данных.
+  async function fetchAndShowButton() {
+    // Ждём появления плеера в DOM
+    await waitForPlayer();
+
+    // Загружаем данные о форматах в фоне
+    videoData = await extractPlayerResponse();
+
+    // Показываем кнопку только если данные получены
+    if (videoData && (videoData.formats.length > 0 || videoData.adaptiveFormats.length > 0)) {
+      createUI();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Инициализация и SPA-навигация
   // ---------------------------------------------------------------------------
 
@@ -323,6 +335,7 @@
         isDropdownOpen = false;
       }
       currentVideoId = null;
+      videoData = null;
       return;
     }
 
@@ -338,23 +351,25 @@
         isDropdownOpen = false;
       }
 
-      // Ждём появления плеера и создаём UI
-      waitForPlayer();
+      // Загружаем данные в фоне, кнопка появится после загрузки
+      fetchAndShowButton();
     }
   }
 
-  /// Ожидает появления элемента #movie_player в DOM,
-  /// затем создаёт UI кнопки.
+  /// Ожидает появления элемента #movie_player в DOM.
+  /// Возвращает Promise, который резолвится когда плеер найден.
   function waitForPlayer() {
-    const check = () => {
-      const player = document.querySelector('#movie_player');
-      if (player) {
-        createUI();
-      } else {
-        setTimeout(check, 500);
-      }
-    };
-    check();
+    return new Promise((resolve) => {
+      const check = () => {
+        const player = document.querySelector('#movie_player');
+        if (player) {
+          resolve();
+        } else {
+          setTimeout(check, 500);
+        }
+      };
+      check();
+    });
   }
 
   // Слушаем SPA-навигацию YouTube

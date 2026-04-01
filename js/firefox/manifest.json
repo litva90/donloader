@@ -7,6 +7,9 @@
     "https://www.youtube.com/*",
     "http://127.0.0.1:18734/*"
   ],
+  "background": {
+    "scripts": ["background.js"]
+  },
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
