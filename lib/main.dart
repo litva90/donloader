@@ -19,6 +19,7 @@
 /// - [ffmpeg_kit_flutter_new] — встроенный ffmpeg для Android, iOS и macOS.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -129,6 +130,9 @@ class _HomePageState extends State<HomePage> {
   /// метаданных видео и потоков для скачивания.
   final _yt = YoutubeExplode();
 
+  /// Локальный HTTP-сервер для приёма запросов от браузерных расширений.
+  HttpServer? _server;
+
   // --- Состояние UI ---
 
   /// Название найденного видео (null, пока видео не загружено).
@@ -156,10 +160,138 @@ class _HomePageState extends State<HomePage> {
   String? _statusMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _startLocalServer();
+  }
+
+  @override
   void dispose() {
+    _server?.close();
     _urlController.dispose();
     _yt.close();
     super.dispose();
+  }
+
+  /// Запускает локальный HTTP-сервер на порту 18734 для приёма запросов
+  /// от браузерных расширений Chrome/Firefox.
+  ///
+  /// Обрабатывает маршрут `/download?url=...&quality=...`:
+  /// заполняет URL, загружает метаданные и показывает диалог подтверждения.
+  Future<void> _startLocalServer() async {
+    try {
+      _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 18734);
+      _server!.listen((HttpRequest request) async {
+        // CORS-заголовки для доступа из браузерного расширения
+        request.response.headers.add('Access-Control-Allow-Origin', '*');
+        request.response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        request.response.headers.add('Access-Control-Allow-Headers', 'Content-Type');
+
+        if (request.method == 'OPTIONS') {
+          request.response.statusCode = 200;
+          await request.response.close();
+          return;
+        }
+
+        if (request.uri.path == '/download') {
+          final url = request.uri.queryParameters['url'];
+          final quality = request.uri.queryParameters['quality'];
+
+          if (url != null && quality != null) {
+            request.response
+              ..statusCode = 200
+              ..write(jsonEncode({'status': 'ok'}));
+            await request.response.close();
+
+            // Обрабатываем запрос в UI-потоке
+            _handleExtensionRequest(url, quality);
+          } else {
+            request.response
+              ..statusCode = 400
+              ..write(jsonEncode({'error': 'Missing url or quality'}));
+            await request.response.close();
+          }
+        } else {
+          request.response.statusCode = 404;
+          await request.response.close();
+        }
+      });
+    } catch (e) {
+      debugPrint('Donloader: не удалось запустить HTTP-сервер: $e');
+    }
+  }
+
+  /// Обрабатывает запрос на скачивание от браузерного расширения.
+  ///
+  /// Заполняет URL, загружает метаданные видео, находит поток
+  /// с подходящим разрешением и показывает диалог подтверждения.
+  Future<void> _handleExtensionRequest(String url, String quality) async {
+    setState(() {
+      _urlController.text = url;
+    });
+
+    await _fetchStreams();
+
+    if (_streams.isEmpty || !mounted) return;
+
+    // Извлекаем числовое разрешение из строки вида "1080p60", "720p" и т.д.
+    final qualityHeight = int.tryParse(quality.replaceAll(RegExp(r'[^0-9]'), ''));
+
+    // Ищем поток с совпадающим разрешением (приоритет adaptive для HD)
+    _VideoStreamInfo? selectedStream;
+    if (qualityHeight != null) {
+      selectedStream = _streams.cast<_VideoStreamInfo?>().firstWhere(
+        (s) => s!.label.startsWith('${qualityHeight}p'),
+        orElse: () => null,
+      );
+    }
+    selectedStream ??= _streams.first;
+
+    // Показываем диалог подтверждения скачивания
+    if (!mounted) return;
+    _showDownloadDialog(selectedStream);
+  }
+
+  /// Показывает диалог подтверждения скачивания с информацией о видео
+  /// и выбранном качестве. Содержит кнопку «Начать загрузку».
+  void _showDownloadDialog(_VideoStreamInfo streamInfo) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Скачивание видео'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_videoTitle != null)
+              Text(
+                _videoTitle!,
+                style: Theme.of(dialogContext).textTheme.titleSmall,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            const SizedBox(height: 12),
+            Text(
+              'Качество: ${streamInfo.label}',
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _download(streamInfo);
+            },
+            child: const Text('Начать загрузку'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Загружает метаданные видео и список доступных потоков по URL.

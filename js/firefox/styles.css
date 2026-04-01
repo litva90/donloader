@@ -1,0 +1,136 @@
+/* Donloader — стили для кнопки и выпадающего списка на YouTube */
+
+/* Контейнер кнопки: абсолютное позиционирование над правым верхним углом плеера */
+#donloader-container {
+  position: absolute;
+  top: -36px;
+  right: 12px;
+  z-index: 10000;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Кнопка «Видео» */
+#donloader-btn {
+  background: #6200ea;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+#donloader-btn:hover {
+  background: #7c4dff;
+}
+
+#donloader-btn:active {
+  background: #5000d4;
+}
+
+/* Выпадающий список форматов */
+#donloader-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: #282828;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  min-width: 340px;
+  max-height: 420px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  z-index: 10001;
+}
+
+/* Скроллбар для списка форматов */
+#donloader-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+#donloader-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#donloader-dropdown::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+/* Название видео в шапке списка */
+.donloader-title {
+  padding: 12px 16px 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Разделитель между названием и форматами */
+.donloader-separator {
+  border: none;
+  border-top: 1px solid #404040;
+  margin: 0;
+}
+
+/* Пункт формата в списке */
+.donloader-item {
+  padding: 10px 16px;
+  color: #e0e0e0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.donloader-item:hover {
+  background: #3a3a3a;
+}
+
+.donloader-item:active {
+  background: #444;
+}
+
+/* Индикатор загрузки */
+.donloader-loading {
+  padding: 16px;
+  color: #aaa;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Сообщение об ошибке */
+.donloader-error {
+  padding: 16px;
+  color: #ef5350;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Всплывающее уведомление (правый нижний угол) */
+.donloader-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #323232;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 999999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.donloader-notification-error {
+  background: #d32f2f;
+}
+
+.donloader-notification-hide {
+  opacity: 0;
+}
