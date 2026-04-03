@@ -19,6 +19,7 @@
 /// - [ffmpeg_kit_flutter_new] — встроенный ffmpeg для Android, iOS и macOS.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -121,6 +122,42 @@ class _VideoStreamInfo {
   }
 }
 
+/// Модель скачанного файла для списка загрузок.
+class DownloadedFile {
+  /// Название видео.
+  final String title;
+
+  /// Полный путь к файлу на диске.
+  final String filePath;
+
+  /// Дата и время завершения скачивания.
+  final DateTime downloadedAt;
+
+  /// Размер файла в байтах.
+  final int sizeBytes;
+
+  DownloadedFile({
+    required this.title,
+    required this.filePath,
+    required this.downloadedAt,
+    required this.sizeBytes,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'filePath': filePath,
+        'downloadedAt': downloadedAt.toIso8601String(),
+        'sizeBytes': sizeBytes,
+      };
+
+  factory DownloadedFile.fromJson(Map<String, dynamic> json) => DownloadedFile(
+        title: json['title'] as String,
+        filePath: json['filePath'] as String,
+        downloadedAt: DateTime.parse(json['downloadedAt'] as String),
+        sizeBytes: json['sizeBytes'] as int,
+      );
+}
+
 /// Состояние [HomePage] — управляет логикой поиска видео и скачивания.
 class _HomePageState extends State<HomePage> {
   /// Контроллер текстового поля для ввода YouTube URL.
@@ -134,6 +171,9 @@ class _HomePageState extends State<HomePage> {
   HttpServer? _server;
 
   // --- Состояние UI ---
+
+  /// Индекс текущей вкладки: 0 — скачивание, 1 — скачанные файлы.
+  int _selectedTab = 0;
 
   /// Название найденного видео (null, пока видео не загружено).
   String? _videoTitle;
@@ -159,10 +199,33 @@ class _HomePageState extends State<HomePage> {
   /// Статусное сообщение (путь сохранённого файла или текст ошибки скачивания).
   String? _statusMessage;
 
+  // --- Управление скачиванием (пауза / отмена) ---
+
+  /// Подписка на текущий поток данных для управления паузой/отменой.
+  StreamSubscription<List<int>>? _currentSubscription;
+
+  /// Файловый sink текущего скачивания.
+  IOSink? _currentFileSink;
+
+  /// Completer для ожидания завершения скачивания потока.
+  Completer<void>? _downloadCompleter;
+
+  /// Флаг: скачивание поставлено на паузу.
+  bool _isPaused = false;
+
+  /// Флаг: скачивание отменено пользователем.
+  bool _isCancelled = false;
+
+  // --- Список скачанных файлов ---
+
+  /// Список скачанных файлов, загружается из JSON при старте.
+  List<DownloadedFile> _downloadedFiles = [];
+
   @override
   void initState() {
     super.initState();
     _startLocalServer();
+    _loadDownloadedFiles();
   }
 
   @override
@@ -172,6 +235,76 @@ class _HomePageState extends State<HomePage> {
     _yt.close();
     super.dispose();
   }
+
+  // ---------------------------------------------------------------------------
+  // Persistence — история скачанных файлов
+  // ---------------------------------------------------------------------------
+
+  /// Возвращает файл для хранения истории скачанных видео.
+  Future<File> get _historyFile async {
+    final dir = await getApplicationSupportDirectory();
+    return File('${dir.path}/downloaded_files.json');
+  }
+
+  /// Загружает список скачанных файлов из JSON-файла на диске.
+  Future<void> _loadDownloadedFiles() async {
+    try {
+      final file = await _historyFile;
+      if (!await file.exists()) return;
+      final json = jsonDecode(await file.readAsString()) as List;
+      setState(() {
+        _downloadedFiles =
+            json.map((e) => DownloadedFile.fromJson(e as Map<String, dynamic>)).toList();
+      });
+    } catch (e) {
+      debugPrint('Donloader: не удалось загрузить историю: $e');
+    }
+  }
+
+  /// Сохраняет текущий список скачанных файлов в JSON-файл.
+  Future<void> _saveDownloadedFiles() async {
+    final file = await _historyFile;
+    await file.writeAsString(
+      jsonEncode(_downloadedFiles.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Управление скачиванием — пауза, возобновление, отмена
+  // ---------------------------------------------------------------------------
+
+  /// Ставит текущее скачивание на паузу.
+  void _pauseDownload() {
+    _currentSubscription?.pause();
+    setState(() => _isPaused = true);
+  }
+
+  /// Возобновляет скачивание после паузы.
+  void _resumeDownload() {
+    _currentSubscription?.resume();
+    setState(() => _isPaused = false);
+  }
+
+  /// Отменяет текущее скачивание и очищает временные ресурсы.
+  Future<void> _cancelDownload() async {
+    _isCancelled = true;
+    await _currentSubscription?.cancel();
+    _currentSubscription = null;
+    await _currentFileSink?.close();
+    _currentFileSink = null;
+    if (_downloadCompleter != null && !_downloadCompleter!.isCompleted) {
+      _downloadCompleter!.completeError(Exception('Download cancelled'));
+    }
+    setState(() {
+      _downloading = false;
+      _isPaused = false;
+      _statusMessage = 'Загрузка отменена';
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Локальный HTTP-сервер
+  // ---------------------------------------------------------------------------
 
   /// Запускает локальный HTTP-сервер на порту 18734 для приёма запросов
   /// от браузерных расширений Chrome/Firefox.
@@ -469,6 +602,9 @@ class _HomePageState extends State<HomePage> {
 
   /// Скачивает один поток в файл, обновляя общий прогресс скачивания.
   ///
+  /// Использует [StreamSubscription] вместо `await for`, чтобы поддерживать
+  /// паузу, возобновление и отмену скачивания.
+  ///
   /// [streamInfo] — метаданные потока из youtube_explode.
   /// [filePath] — путь для сохранения файла.
   /// [progressOffset] — начальное смещение прогресса (0.0–1.0),
@@ -483,24 +619,42 @@ class _HomePageState extends State<HomePage> {
     final stream = _yt.videos.streams.get(streamInfo);
     final file = File(filePath);
     final fileStream = file.openWrite();
+    _currentFileSink = fileStream;
 
     final totalBytes = streamInfo.size.totalBytes;
     var receivedBytes = 0;
 
-    // // Читаем поток чанками и записываем в файл,
-    // // обновляя прогресс с учётом смещения и веса
-    await for (final chunk in stream) {
-      fileStream.add(chunk);
-      receivedBytes += chunk.length;
-      setState(() {
-        _downloadProgress =
-            progressOffset + (receivedBytes / totalBytes) * progressWeight;
-       });
-    }
+    _downloadCompleter = Completer<void>();
+    _isCancelled = false;
 
-    // Гарантируем, что все данные записаны на диск
-    await fileStream.flush();
-    await fileStream.close();
+    _currentSubscription = stream.listen(
+      (chunk) {
+        if (_isCancelled) return;
+        fileStream.add(chunk);
+        receivedBytes += chunk.length;
+        setState(() {
+          _downloadProgress =
+              progressOffset + (receivedBytes / totalBytes) * progressWeight;
+        });
+      },
+      onDone: () async {
+        await fileStream.flush();
+        await fileStream.close();
+        _currentFileSink = null;
+        _currentSubscription = null;
+        if (!_downloadCompleter!.isCompleted) {
+          _downloadCompleter!.complete();
+        }
+      },
+      onError: (Object error) {
+        if (!_downloadCompleter!.isCompleted) {
+          _downloadCompleter!.completeError(error);
+        }
+      },
+      cancelOnError: true,
+    );
+
+    return _downloadCompleter!.future;
   }
 
   /// Склеивает видео и аудио файлы в один с помощью ffmpeg.
@@ -595,6 +749,8 @@ class _HomePageState extends State<HomePage> {
   /// 2. Склеивает их через ffmpeg (без перекодирования).
   /// 3. Сохраняет результат в выбранное пользователем место.
   /// 4. Удаляет временные файлы.
+  ///
+  /// После успешного скачивания файл добавляется в историю загрузок.
   Future<void> _download(_VideoStreamInfo info) async {
     // Открываем нативный диалог выбора места сохранения
     final savePath = await FilePicker.platform.saveFile(
@@ -609,6 +765,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _downloading = true;
       _downloadProgress = 0;
+      _isPaused = false;
+      _isCancelled = false;
       _statusMessage = 'Скачивание...';
     });
 
@@ -661,14 +819,43 @@ class _HomePageState extends State<HomePage> {
         await File(tempAudio).delete();
       }
 
+      // Записываем файл в историю скачанных
+      final fileSize = await File(savePath).length();
+      final downloaded = DownloadedFile(
+        title: _videoTitle ?? 'video',
+        filePath: savePath,
+        downloadedAt: DateTime.now(),
+        sizeBytes: fileSize,
+      );
+      _downloadedFiles.insert(0, downloaded);
+      await _saveDownloadedFiles();
+
       setState(() {
         _downloading = false;
         _statusMessage = 'Скачано: $savePath';
       });
     } catch (e) {
+      // Очищаем временные файлы при ошибке/отмене для adaptive-потоков
+      if (info.type == StreamType.adaptive) {
+        final tempDir = await getTemporaryDirectory();
+        final tempVideo =
+            '${tempDir.path}/donloader_video_tmp.${info.videoStream!.container.name}';
+        final tempAudio =
+            '${tempDir.path}/donloader_audio_tmp.${info.audioStream!.container.name}';
+        try { await File(tempVideo).delete(); } catch (_) {}
+        try { await File(tempAudio).delete(); } catch (_) {}
+      }
+      // Удаляем недокачанный файл при отмене
+      if (_isCancelled) {
+        try { await File(savePath).delete(); } catch (_) {}
+      }
+
       setState(() {
         _downloading = false;
-        _statusMessage = 'Ошибка скачивания: $e';
+        _isPaused = false;
+        _statusMessage = e.toString().contains('cancelled')
+            ? 'Загрузка отменена'
+            : 'Ошибка скачивания: $e';
       });
     }
   }
@@ -680,118 +867,291 @@ class _HomePageState extends State<HomePage> {
     return name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
   }
 
+  // ---------------------------------------------------------------------------
+  // Действия со скачанными файлами
+  // ---------------------------------------------------------------------------
+
+  /// Открывает видеофайл в системном проигрывателе.
+  Future<void> _openFile(DownloadedFile file) async {
+    final f = File(file.filePath);
+    if (!await f.exists()) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Файл не найден на диске')),
+      );
+      return;
+    }
+    if (Platform.isMacOS) {
+      await Process.run('open', [file.filePath]);
+    } else if (Platform.isWindows) {
+      await Process.run('cmd', ['/c', 'start', '', file.filePath]);
+    } else if (Platform.isLinux) {
+      await Process.run('xdg-open', [file.filePath]);
+    }
+  }
+
+  /// Показывает диалог подтверждения и удаляет файл с диска и из истории.
+  Future<void> _confirmDelete(DownloadedFile file) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удалить файл?'),
+        content: Text('Файл «${file.title}» будет удалён с диска.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await File(file.filePath).delete();
+    } catch (_) {}
+    setState(() => _downloadedFiles.remove(file));
+    await _saveDownloadedFiles();
+  }
+
+  /// Показывает контекстное меню для скачанного файла при правом клике.
+  void _showFileContextMenu(Offset position, DownloadedFile file) {
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx, position.dy, position.dx, position.dy,
+      ),
+      items: const [
+        PopupMenuItem(
+          value: 'open',
+          child: ListTile(
+            leading: Icon(Icons.play_arrow),
+            title: Text('Открыть'),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete, color: Colors.red),
+            title: Text('Удалить'),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'open') _openFile(file);
+      if (value == 'delete') _confirmDelete(file);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // UI — build
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Donloader')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // --- Строка ввода URL и кнопка поиска ---
+      body: _selectedTab == 0 ? _buildDownloadPage() : _buildFilesPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedTab,
+        onTap: (i) => setState(() => _selectedTab = i),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.download),
+            label: 'Скачать',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder),
+            label: 'Файлы',
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Вкладка «Скачать» — поле ввода URL, превью, список качеств, прогресс.
+  Widget _buildDownloadPage() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // --- Строка ввода URL и кнопка поиска ---
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _urlController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ссылка на YouTube видео',
+                    hintText: 'https://www.youtube.com/watch?v=...',
+                    border: OutlineInputBorder(),
+                  ),
+                  onSubmitted: (_) => _fetchStreams(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: _loading ? null : _fetchStreams,
+                icon: const Icon(Icons.search),
+                label: const Text('Найти'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // --- Индикатор загрузки метаданных ---
+          if (_loading) const Center(child: CircularProgressIndicator()),
+
+          // --- Сообщение об ошибке ---
+          if (_error != null)
+            Text(_error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+
+          // --- Превью видео и список качеств ---
+          if (_videoTitle != null) ...[
+            // Превью: миниатюра + название видео
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _urlController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ссылка на YouTube видео',
-                      hintText: 'https://www.youtube.com/watch?v=...',
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _fetchStreams(),
+                if (_thumbnailUrl != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(_thumbnailUrl!,
+                        width: 160, height: 90, fit: BoxFit.cover),
                   ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _loading ? null : _fetchStreams,
-                  icon: const Icon(Icons.search),
-                  label: const Text('Найти'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    _videoTitle!,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            const Text('Выберите качество:'),
+            const SizedBox(height: 8),
 
-            // --- Индикатор загрузки метаданных ---
-            if (_loading) const Center(child: CircularProgressIndicator()),
-
-            // --- Сообщение об ошибке ---
-            if (_error != null)
-              Text(_error!,
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.error)),
-
-            // --- Превью видео и список качеств ---
-            if (_videoTitle != null) ...[
-              // Превью: миниатюра + название видео
-              Row(
-                children: [
-                  if (_thumbnailUrl != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(_thumbnailUrl!,
-                          width: 160, height: 90, fit: BoxFit.cover),
+            // Прокручиваемый список доступных качеств
+            Expanded(
+              child: ListView.builder(
+                itemCount: _streams.length,
+                itemBuilder: (context, index) {
+                  final s = _streams[index];
+                  return ListTile(
+                    leading: Icon(
+                      // Muxed-потоки показываем обычной иконкой,
+                      // adaptive — иконкой HD для визуального отличия
+                      s.type == StreamType.muxed
+                          ? Icons.video_file
+                          : Icons.hd,
                     ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      _videoTitle!,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                    title: Text(s.label),
+                    // Блокируем выбор во время активного скачивания
+                    onTap: _downloading ? null : () => _download(s),
+                  );
+                },
               ),
-              const SizedBox(height: 12),
-              const Text('Выберите качество:'),
-              const SizedBox(height: 8),
-
-              // Прокручиваемый список доступных качеств
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _streams.length,
-                  itemBuilder: (context, index) {
-                    final s = _streams[index];
-                    return ListTile(
-                      leading: Icon(
-                        // Muxed-потоки показываем обычной иконкой,
-                        // adaptive — иконкой HD для визуального отличия
-                        s.type == StreamType.muxed
-                            ? Icons.video_file
-                            : Icons.hd,
-                      ),
-                      title: Text(s.label),
-                      // Блокируем выбор во время активного скачивания
-                      onTap: _downloading ? null : () => _download(s),
-                    );
-                  },
-                ),
-              ),
-            ],
-
-            // --- Прогресс скачивания ---
-            if (_downloading) ...[
-              const SizedBox(height: 16),
-              LinearProgressIndicator(value: _downloadProgress),
-              const SizedBox(height: 4),
-              Text('${(_downloadProgress * 100).toStringAsFixed(1)}%'),
-              // Отображаем текущий этап скачивания
-              if (_statusMessage != null)
-                Text(_statusMessage!,
-                    style: const TextStyle(color: Colors.white70)),
-            ],
-
-            // --- Статусное сообщение (путь файла или ошибка) ---
-            if (_statusMessage != null && !_downloading) ...[
-              const SizedBox(height: 16),
-              Text(_statusMessage!,
-                  style: const TextStyle(color: Colors.greenAccent)),
-            ],
+            ),
           ],
-        ),
+
+          // --- Прогресс скачивания с кнопками управления ---
+          if (_downloading) ...[
+            const SizedBox(height: 16),
+            LinearProgressIndicator(value: _downloadProgress),
+            const SizedBox(height: 4),
+            Text('${(_downloadProgress * 100).toStringAsFixed(1)}%'),
+            // Отображаем текущий этап скачивания
+            if (_statusMessage != null)
+              Text(_statusMessage!,
+                  style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 8),
+            // Кнопки паузы/возобновления и отмены
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (!_isPaused)
+                  IconButton(
+                    icon: const Icon(Icons.pause_circle_filled, size: 32),
+                    tooltip: 'Пауза',
+                    onPressed: _pauseDownload,
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_filled, size: 32),
+                    tooltip: 'Продолжить',
+                    onPressed: _resumeDownload,
+                  ),
+                const SizedBox(width: 16),
+                IconButton(
+                  icon: const Icon(Icons.cancel, size: 32, color: Colors.red),
+                  tooltip: 'Отменить загрузку',
+                  onPressed: _cancelDownload,
+                ),
+              ],
+            ),
+          ],
+
+          // --- Статусное сообщение (путь файла или ошибка) ---
+          if (_statusMessage != null && !_downloading) ...[
+            const SizedBox(height: 16),
+            Text(_statusMessage!,
+                style: const TextStyle(color: Colors.greenAccent)),
+          ],
+        ],
       ),
+    );
+  }
+
+  /// Вкладка «Файлы» — список скачанных видео с контекстным меню.
+  Widget _buildFilesPage() {
+    if (_downloadedFiles.isEmpty) {
+      return const Center(
+        child: Text(
+          'Нет скачанных файлов',
+          style: TextStyle(color: Colors.white54, fontSize: 16),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _downloadedFiles.length,
+      itemBuilder: (context, index) {
+        final file = _downloadedFiles[index];
+        final sizeMb = (file.sizeBytes / 1024 / 1024).toStringAsFixed(1);
+        final date =
+            '${file.downloadedAt.day.toString().padLeft(2, '0')}.'
+            '${file.downloadedAt.month.toString().padLeft(2, '0')}.'
+            '${file.downloadedAt.year}';
+
+        return GestureDetector(
+          onSecondaryTapUp: (details) {
+            _showFileContextMenu(details.globalPosition, file);
+          },
+          child: ListTile(
+            leading: const Icon(Icons.video_file, size: 36),
+            title: Text(
+              file.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text('$sizeMb MB — $date'),
+            // Двойной клик для открытия
+            onTap: () => _openFile(file),
+          ),
+        );
+      },
     );
   }
 }
