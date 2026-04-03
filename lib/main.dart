@@ -176,15 +176,16 @@ class _HomePageState extends State<HomePage> {
   /// Запускает локальный HTTP-сервер на порту 18734 для приёма запросов
   /// от браузерных расширений Chrome/Firefox.
   ///
-  /// Обрабатывает маршрут `/download?url=...&quality=...`:
-  /// заполняет URL, загружает метаданные и показывает диалог подтверждения.
+  /// Обрабатывает POST `/download` с JSON-телом `{videoId, title, quality}`.
+  /// Расширение передаёт всю необходимую информацию, чтобы приложение
+  /// могло мгновенно показать диалог без дополнительного поиска.
   Future<void> _startLocalServer() async {
     try {
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 18734);
       _server!.listen((HttpRequest request) async {
         // CORS-заголовки для доступа из браузерного расширения
         request.response.headers.add('Access-Control-Allow-Origin', '*');
-        request.response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         request.response.headers.add('Access-Control-Allow-Headers', 'Content-Type');
 
         if (request.method == 'OPTIONS') {
@@ -193,22 +194,31 @@ class _HomePageState extends State<HomePage> {
           return;
         }
 
-        if (request.uri.path == '/download') {
-          final url = request.uri.queryParameters['url'];
-          final quality = request.uri.queryParameters['quality'];
+        if (request.uri.path == '/download' && request.method == 'POST') {
+          try {
+            final body = await utf8.decoder.bind(request).join();
+            final data = jsonDecode(body) as Map<String, dynamic>;
+            final videoId = data['videoId'] as String?;
+            final title = data['title'] as String?;
+            final quality = data['quality'] as String?;
 
-          if (url != null && quality != null) {
-            request.response
-              ..statusCode = 200
-              ..write(jsonEncode({'status': 'ok'}));
-            await request.response.close();
+            if (videoId != null && title != null && quality != null) {
+              request.response
+                ..statusCode = 200
+                ..write(jsonEncode({'status': 'ok'}));
+              await request.response.close();
 
-            // Обрабатываем запрос в UI-потоке
-            _handleExtensionRequest(url, quality);
-          } else {
+              _handleExtensionRequest(videoId, title, quality);
+            } else {
+              request.response
+                ..statusCode = 400
+                ..write(jsonEncode({'error': 'Missing videoId, title or quality'}));
+              await request.response.close();
+            }
+          } catch (e) {
             request.response
               ..statusCode = 400
-              ..write(jsonEncode({'error': 'Missing url or quality'}));
+              ..write(jsonEncode({'error': 'Invalid JSON'}));
             await request.response.close();
           }
         } else {
@@ -223,38 +233,24 @@ class _HomePageState extends State<HomePage> {
 
   /// Обрабатывает запрос на скачивание от браузерного расширения.
   ///
-  /// Заполняет URL, загружает метаданные видео, находит поток
-  /// с подходящим разрешением и показывает диалог подтверждения.
-  Future<void> _handleExtensionRequest(String url, String quality) async {
+  /// Получает videoId, title и quality от расширения. Мгновенно показывает
+  /// диалог подтверждения с этими данными. Манифест потоков запрашивается
+  /// только после нажатия «Начать загрузку».
+  void _handleExtensionRequest(String videoId, String title, String quality) {
+    if (!mounted) return;
+
     setState(() {
-      _urlController.text = url;
+      _videoTitle = title;
     });
 
-    await _fetchStreams();
-
-    if (_streams.isEmpty || !mounted) return;
-
-    // Извлекаем числовое разрешение из строки вида "1080p60", "720p" и т.д.
-    final qualityHeight = int.tryParse(quality.replaceAll(RegExp(r'[^0-9]'), ''));
-
-    // Ищем поток с совпадающим разрешением (приоритет adaptive для HD)
-    _VideoStreamInfo? selectedStream;
-    if (qualityHeight != null) {
-      selectedStream = _streams.cast<_VideoStreamInfo?>().firstWhere(
-        (s) => s!.label.startsWith('${qualityHeight}p'),
-        orElse: () => null,
-      );
-    }
-    selectedStream ??= _streams.first;
-
-    // Показываем диалог подтверждения скачивания
-    if (!mounted) return;
-    _showDownloadDialog(selectedStream);
+    _showExtensionDownloadDialog(videoId, title, quality);
   }
 
-  /// Показывает диалог подтверждения скачивания с информацией о видео
-  /// и выбранном качестве. Содержит кнопку «Начать загрузку».
-  void _showDownloadDialog(_VideoStreamInfo streamInfo) {
+  /// Показывает диалог подтверждения для запроса от расширения.
+  ///
+  /// Отображается мгновенно с данными, полученными от расширения.
+  /// При нажатии «Начать загрузку» запрашивает манифест и начинает скачивание.
+  void _showExtensionDownloadDialog(String videoId, String title, String quality) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -263,16 +259,15 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_videoTitle != null)
-              Text(
-                _videoTitle!,
-                style: Theme.of(dialogContext).textTheme.titleSmall,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
+            Text(
+              title,
+              style: Theme.of(dialogContext).textTheme.titleSmall,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 12),
             Text(
-              'Качество: ${streamInfo.label}',
+              'Качество: $quality',
               style: const TextStyle(color: Colors.white70),
             ),
           ],
@@ -285,13 +280,97 @@ class _HomePageState extends State<HomePage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              _download(streamInfo);
+              _downloadFromExtension(videoId, title, quality);
             },
             child: const Text('Начать загрузку'),
           ),
         ],
       ),
     );
+  }
+
+  /// Запрашивает манифест по videoId и скачивает поток с указанным разрешением.
+  ///
+  /// Вызывается после подтверждения пользователем в диалоге.
+  /// Находит поток, соответствующий запрошенному качеству, и запускает
+  /// стандартный процесс скачивания.
+  Future<void> _downloadFromExtension(String videoId, String title, String quality) async {
+    setState(() {
+      _downloading = true;
+      _downloadProgress = 0;
+      _statusMessage = 'Получение потоков...';
+    });
+
+    try {
+      final manifest = await _yt.videos.streams.getManifest(VideoId(videoId), ytClients: [
+        YoutubeApiClient.safari,
+        YoutubeApiClient.androidVr,
+      ]);
+
+      // Извлекаем числовое разрешение из строки вида "1080p60", "720p" и т.д.
+      final qualityHeight = int.tryParse(quality.replaceAll(RegExp(r'[^0-9]'), ''));
+
+      // Собираем все потоки — сначала adaptive (HD), затем muxed
+      final allStreams = <_VideoStreamInfo>[];
+
+      final audioStreams = manifest.audioOnly.toList()
+        ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      final bestAudio = audioStreams.isNotEmpty ? audioStreams.first : null;
+
+      if (bestAudio != null) {
+        for (final v in manifest.videoOnly) {
+          final totalSize = v.size.totalBytes + bestAudio.size.totalBytes;
+          final sizeMb = (totalSize / 1024 / 1024).toStringAsFixed(1);
+          allStreams.add(_VideoStreamInfo.adaptive(
+            label: '${v.videoResolution.height}p — '
+                '${v.container.name} — '
+                '$sizeMb MB — HD',
+            video: v,
+            audio: bestAudio,
+          ));
+        }
+      }
+
+      for (final s in manifest.muxed) {
+        final sizeMb = (s.size.totalBytes / 1024 / 1024).toStringAsFixed(1);
+        allStreams.add(_VideoStreamInfo.muxed(
+          label: '${s.videoResolution.height}p — '
+              '${s.container.name} — '
+              '$sizeMb MB',
+          stream: s,
+        ));
+      }
+
+      if (allStreams.isEmpty) {
+        setState(() {
+          _downloading = false;
+          _statusMessage = 'Потоки не найдены';
+        });
+        return;
+      }
+
+      // Ищем поток с совпадающим разрешением
+      _VideoStreamInfo? selectedStream;
+      if (qualityHeight != null) {
+        selectedStream = allStreams.cast<_VideoStreamInfo?>().firstWhere(
+          (s) => s!.label.startsWith('${qualityHeight}p'),
+          orElse: () => null,
+        );
+      }
+      selectedStream ??= allStreams.first;
+
+      setState(() {
+        _videoTitle = title;
+        _downloading = false;
+      });
+
+      await _download(selectedStream);
+    } catch (e) {
+      setState(() {
+        _downloading = false;
+        _statusMessage = 'Ошибка: $e';
+      });
+    }
   }
 
   /// Загружает метаданные видео и список доступных потоков по URL.

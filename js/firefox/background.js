@@ -7,7 +7,17 @@
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'donloader-download') {
-    fetch(message.url, { method: 'GET' })
+    const fetchOptions = {
+      method: message.method || 'GET',
+    };
+
+    // Поддержка POST-запросов с телом
+    if (message.method === 'POST' && message.body) {
+      fetchOptions.headers = { 'Content-Type': 'application/json' };
+      fetchOptions.body = message.body;
+    }
+
+    fetch(message.url, fetchOptions)
       .then((response) => {
         if (response.ok) {
           return response.json().then((data) => ({ ok: true, data }));

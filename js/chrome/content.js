@@ -225,18 +225,23 @@
   // Связь с приложением Donloader
   // ---------------------------------------------------------------------------
 
-  /// Отправляет выбранный формат и URL видео в приложение Donloader.
+  /// Отправляет данные о видео и выбранном формате в приложение Donloader.
   ///
-  /// Делает GET-запрос к локальному HTTP-серверу приложения.
-  /// Если приложение не запущено, показывает уведомление об ошибке.
+  /// Передаёт videoId, title и quality через POST-запрос, чтобы приложение
+  /// могло мгновенно показать диалог подтверждения без собственного поиска.
   async function sendToApp(quality) {
-    const url = window.location.href;
+    const payload = {
+      videoId: videoData.videoId,
+      title: videoData.title,
+      quality: quality,
+    };
 
     try {
-      const response = await fetch(
-        `${DONLOADER_API}/download?url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}`,
-        { method: 'GET' }
-      );
+      const response = await fetch(`${DONLOADER_API}/download`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
       if (response.ok) {
         dropdown.style.display = 'none';

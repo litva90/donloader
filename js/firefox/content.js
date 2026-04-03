@@ -225,18 +225,24 @@
   // Связь с приложением Donloader
   // ---------------------------------------------------------------------------
 
-  /// Отправляет выбранный формат и URL видео в приложение Donloader.
+  /// Отправляет данные о видео и выбранном формате в приложение Donloader.
   ///
-  /// В Firefox fetch из content script выполняется от имени страницы,
-  /// поэтому запрос проксируется через background script расширения.
+  /// В Firefox запрос проксируется через background script.
+  /// Передаёт videoId, title и quality, чтобы приложение могло мгновенно
+  /// показать диалог подтверждения без собственного поиска.
   async function sendToApp(quality) {
-    const url = window.location.href;
-    const apiUrl = `${DONLOADER_API}/download?url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}`;
+    const payload = {
+      videoId: videoData.videoId,
+      title: videoData.title,
+      quality: quality,
+    };
 
     try {
       const result = await browser.runtime.sendMessage({
         type: 'donloader-download',
-        url: apiUrl,
+        url: `${DONLOADER_API}/download`,
+        method: 'POST',
+        body: JSON.stringify(payload),
       });
 
       if (result && result.ok) {

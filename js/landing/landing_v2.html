@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadSnap — скачивай всё, что хочешь</title>
+<meta name="description" content="LoadSnap — универсальный загрузчик видео, музыки и файлов. YouTube, Vimeo, Instagram, Twitch и 500+ платформ. 4K, MP3, FLAC.">
+<meta property="og:title" content="LoadSnap — скачивай видео и файлы без ограничений">
+<meta property="og:description" content="Вставь ссылку — выбери формат — скачай. Без рекламы, без магии.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --accent: #ff5c35;
+    --accent2: #ffb347;
+    --text: #f0eff8;
+    --muted: #7a7990;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--accent); }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--text); }
+
+  .nav-links { display: flex; gap: 32px; }
+
+  .btn-nav {
+    background: var(--accent);
+    color: #fff !important;
+    padding: 9px 22px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: opacity 0.2s, transform 0.2s !important;
+  }
+  .btn-nav:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(255,92,53,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,92,53,0.12);
+    border: 1px solid rgba(255,92,53,0.3);
+    color: var(--accent2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    animation: fadeUp 0.6s ease both;
+  }
+  .badge::before {
+    content: '●';
+    font-size: 0.6rem;
+    color: var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    max-width: 800px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 24px;
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 520px;
+    font-weight: 300;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-cta {
+    margin-top: 48px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 40px rgba(255,92,53,0.35);
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(255,92,53,0.5);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 16px 36px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-decoration: none;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .hero-note {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  /* DEMO MOCKUP */
+  .mockup {
+    margin-top: 80px;
+    width: 100%;
+    max-width: 860px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .mockup-bar {
+    background: var(--surface2);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+
+  .mockup-url {
+    margin-left: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex: 1;
+    max-width: 380px;
+  }
+
+  .mockup-body { padding: 28px; }
+
+  .paste-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .paste-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+  }
+  .paste-input::placeholder { color: var(--muted); }
+
+  .paste-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  .format-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .fmt-chip {
+    padding: 7px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .fmt-chip.active {
+    background: rgba(255,92,53,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .download-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .dl-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .dl-thumb {
+    width: 52px;
+    height: 36px;
+    background: var(--surface2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .dl-info { flex: 1; min-width: 0; }
+  .dl-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dl-meta { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+
+  .dl-progress {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .dl-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    animation: progress 2s ease-in-out infinite alternate;
+  }
+  @keyframes progress {
+    from { width: 30%; }
+    to { width: 85%; }
+  }
+
+  .dl-badge {
+    background: rgba(255,92,53,0.15);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .dl-badge.done {
+    background: rgba(40,200,64,0.12);
+    color: #28c840;
+  }
+
+  /* SECTION */
+  section {
+    padding: 100px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  /* FEATURES */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 56px;
+  }
+
+  .feat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.3s, transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feat-card:hover { border-color: rgba(255,92,53,0.25); transform: translateY(-3px); }
+  .feat-card:hover::before { opacity: 1; }
+
+  .feat-icon {
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+
+  .feat-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+  }
+
+  .feat-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+
+  /* FORMATS */
+  .formats-section { text-align: center; }
+
+  .formats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 48px;
+  }
+
+  .format-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 28px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .format-pill:hover {
+    background: rgba(255,92,53,0.1);
+    border-color: rgba(255,92,53,0.4);
+    color: var(--accent);
+    transform: scale(1.05);
+  }
+  .format-pill span { font-size: 0.72rem; display: block; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; margin-top: 4px; }
+
+  /* PRICING */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 56px;
+    align-items: start;
+  }
+
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    position: relative;
+    transition: transform 0.3s;
+  }
+  .price-card:hover { transform: translateY(-4px); }
+
+  .price-card.featured {
+    border-color: var(--accent);
+    background: linear-gradient(145deg, rgba(255,92,53,0.08), var(--surface));
+    box-shadow: 0 0 60px rgba(255,92,53,0.12);
+  }
+
+  .price-tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .plan-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 3rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .plan-price sup { font-size: 1.2rem; vertical-align: super; }
+  .plan-period { font-size: 0.85rem; color: var(--muted); margin-top: 6px; margin-bottom: 28px; }
+
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .plan-features li {
+    font-size: 0.9rem;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+  .plan-features li.no { color: rgba(122,121,144,0.4); }
+  .plan-features li.no::before { content: '×'; color: rgba(122,121,144,0.3); }
+
+  .plan-btn {
+    display: block;
+    text-align: center;
+    margin-top: 32px;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .plan-btn-outline {
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: transparent;
+  }
+  .plan-btn-outline:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+  .plan-btn-filled {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 30px rgba(255,92,53,0.3);
+  }
+  .plan-btn-filled:hover { box-shadow: 0 0 50px rgba(255,92,53,0.5); transform: translateY(-1px); }
+
+  /* EMAIL CAPTURE */
+  .capture-section {
+    text-align: center;
+    padding: 80px 24px 100px;
+    position: relative;
+  }
+
+  .capture-glow {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(255,92,53,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .capture-box {
+    max-width: 540px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    position: relative;
+  }
+
+  .capture-box h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 12px; }
+  .capture-box p { color: var(--muted); font-size: 0.95rem; margin-bottom: 32px; }
+
+  .email-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .email-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .email-input:focus { border-color: rgba(255,92,53,0.4); }
+  .email-input::placeholder { color: var(--muted); }
+
+  .email-submit {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 0 30px rgba(255,92,53,0.3);
+  }
+  .email-submit:hover { transform: translateY(-1px); box-shadow: 0 0 40px rgba(255,92,53,0.5); }
+
+  .capture-note { font-size: 0.78rem; color: var(--muted); margin-top: 16px; }
+
+  .early-badge {
+    display: inline-block;
+    background: rgba(255,179,71,0.12);
+    border: 1px solid rgba(255,179,71,0.3);
+    color: var(--accent2);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .slots-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 24px 0 10px;
+    flex-wrap: wrap;
+  }
+
+  .slot {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+
+  .slot.taken {
+    background: rgba(255,92,53,0.15);
+    border-color: rgba(255,92,53,0.4);
+    color: var(--accent);
+    position: relative;
+  }
+
+  .slot.taken::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 7px;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3px,
+      rgba(255,92,53,0.08) 3px,
+      rgba(255,92,53,0.08) 6px
+    );
+  }
+
+  .slot.active {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    box-shadow: 0 0 12px rgba(255,179,71,0.3);
+    animation: slotPulse 1.5s infinite;
+  }
+
+  @keyframes slotPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,179,71,0.3); }
+    50% { box-shadow: 0 0 24px rgba(255,179,71,0.6); }
+  }
+
+  .slots-note {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  @media (max-width: 640px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    section { padding: 64px 20px; }
+    .email-row { flex-direction: column; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+    .capture-box { padding: 32px 24px; }
+    .paste-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Load<span>Snap</span></div>
+  <div class="nav-links">
+    <a href="#features">Возможности</a>
+    <a href="#formats">Форматы</a>
+    <a href="#pricing">Цены</a>
+    <a href="#early" class="btn-nav">Ранний доступ</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="badge">Ранняя версия · Скоро запуск</div>
+
+  <h1>Скачивай видео<br>и файлы <em>без ограничений</em></h1>
+
+  <p class="hero-sub">
+    Вставь ссылку — выбери формат и качество — получи файл.<br>
+    Без рекламы, без лишнего, без магии.
+  </p>
+
+  <div class="hero-cta">
+    <a href="#early" class="btn-primary">Получить ранний доступ</a>
+    <a href="#features" class="btn-ghost">Как это работает</a>
+  </div>
+
+  <p class="hero-note">30-дневный бесплатный период · Отмена в любой момент</p>
+
+  <!-- MOCKUP -->
+  <div class="mockup">
+    <div class="mockup-bar">
+      <div class="dot r"></div>
+      <div class="dot y"></div>
+      <div class="dot g"></div>
+      <div class="mockup-url">app.loadsnap.io/download</div>
+    </div>
+    <div class="mockup-body">
+      <div class="paste-row">
+        <input class="paste-input" placeholder="Вставь ссылку на YouTube, Vimeo, Instagram..." readonly>
+        <button class="paste-btn">⚡ Скачать</button>
+      </div>
+      <div class="format-row">
+        <div class="fmt-chip active">MP4 · 4K</div>
+        <div class="fmt-chip">MP4 · 1080p</div>
+        <div class="fmt-chip">MP4 · 720p</div>
+        <div class="fmt-chip">MP3</div>
+        <div class="fmt-chip">WAV</div>
+        <div class="fmt-chip">WebM</div>
+      </div>
+      <div class="download-list">
+        <div class="dl-item">
+          <div class="dl-thumb">🎬</div>
+          <div class="dl-info">
+            <div class="dl-name">Вся правда про AI в 2025 году — подкаст.mp4</div>
+            <div class="dl-meta">YouTube · 4K · 847 МБ</div>
+            <div class="dl-progress"><div class="dl-bar" style="width:68%"></div></div>
+          </div>
+          <div class="dl-badge">68%</div>
+        </div>
+        <div class="dl-item">
+          <div class="dl-thumb">🎵</div>
+          <div class="dl-info">
+            <div class="dl-name">Любимый трек со стримера.mp3</div>
+            <div class="dl-meta">Twitch · MP3 320kbps · 12 МБ</div>
+          </div>
+          <div class="dl-badge done">Готово ✓</div>
+        </div>
+        <div class="dl-item">
+          <div class="dl-thumb">📄</div>
+          <div class="dl-info">
+            <div class="dl-name">Документация проекта v2.pdf</div>
+            <div class="dl-meta">Google Drive · PDF · 4.2 МБ</div>
+            <div class="dl-progress"><div class="dl-bar" style="width:40%; animation-duration: 3s;"></div></div>
+          </div>
+          <div class="dl-badge">40%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="reveal">
+    <div class="section-label">Возможности</div>
+    <h2>Всё, что нужно<br>для загрузок</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Выбор качества</div>
+      <div class="feat-desc">4K, 1080p, 720p, 480p — ты решаешь качество до начала загрузки. Не программа за тебя.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Высокая скорость</div>
+      <div class="feat-desc">Параллельная загрузка по сегментам — в 5–8 раз быстрее стандартного браузера.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🔄</div>
+      <div class="feat-title">Возобновление</div>
+      <div class="feat-desc">Прервалось соединение — не проблема. Загрузка продолжится с того места.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🎬</div>
+      <div class="feat-title">Видео отовсюду</div>
+      <div class="feat-desc">YouTube, Vimeo, Instagram, Twitch, TikTok и ещё 500+ платформ.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🎵</div>
+      <div class="feat-title">Музыка из стримов</div>
+      <div class="feat-desc">Сохраняй аудио прямо с живых стримов Twitch, YouTube Live — в MP3, WAV или FLAC.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🗜️</div>
+      <div class="feat-title">Архивы и файлы</div>
+      <div class="feat-desc">ZIP, RAR, 7z, PDF, образы дисков — любые типы файлов через единый интерфейс.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">📂</div>
+      <div class="feat-title">Авто-сортировка</div>
+      <div class="feat-desc">Файлы автоматически раскладываются по папкам: видео, музыка, документы, архивы.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">☁️</div>
+      <div class="feat-title">100 ГБ облака</div>
+      <div class="feat-desc">Сохраняй файлы локально или в облако LoadSnap. Делись ссылкой — не нужно отправлять сам файл.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🔗</div>
+      <div class="feat-title">Поделиться ссылкой</div>
+      <div class="feat-desc">Передай файл целиком или отправь облачную ссылку — получатель скачает в один клик.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">🔁</div>
+      <div class="feat-title">Синхронизация</div>
+      <div class="feat-desc">Скачал на телефоне — открылось на компьютере. Файлы синхронизируются между всеми устройствами.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">Все платформы</div>
+      <div class="feat-desc">Windows, macOS, Linux, iOS и Android. Один аккаунт — на всех устройствах.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">📁</div>
+      <div class="feat-title">Любые файлы</div>
+      <div class="feat-desc">Если в интернете есть ссылка — LoadSnap скачает. Без исключений.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FORMATS -->
+<section id="formats" class="formats-section">
+  <div class="reveal">
+    <div class="section-label">Форматы</div>
+    <h2>Скачивай в нужном формате</h2>
+  </div>
+  <div class="formats-grid reveal">
+    <div class="format-pill">MP4 <span>видео</span></div>
+    <div class="format-pill">WebM <span>видео</span></div>
+    <div class="format-pill">MKV <span>видео</span></div>
+    <div class="format-pill">AVI <span>видео</span></div>
+    <div class="format-pill">MP3 <span>аудио</span></div>
+    <div class="format-pill">WAV <span>аудио</span></div>
+    <div class="format-pill">FLAC <span>аудио</span></div>
+    <div class="format-pill">M4A <span>аудио</span></div>
+    <div class="format-pill">PDF <span>документ</span></div>
+    <div class="format-pill">ZIP <span>архив</span></div>
+    <div class="format-pill">RAR <span>архив</span></div>
+    <div class="format-pill">7z <span>архив</span></div>
+    <div class="format-pill">GIF <span>анимация</span></div>
+    <div class="format-pill">HLS <span>стримы</span></div>
+    <div class="format-pill">ISO <span>образ диска</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="reveal">
+    <div class="section-label">Цены</div>
+    <h2>Просто и честно</h2>
+  </div>
+  <div class="pricing-grid">
+
+    <div class="price-card reveal">
+      <div class="plan-name">Бесплатно</div>
+      <div class="plan-price"><sup>$</sup>0</div>
+      <div class="plan-period">навсегда</div>
+      <ul class="plan-features">
+        <li>До 5 загрузок в день</li>
+        <li>Максимум 720p</li>
+        <li>MP4 и MP3</li>
+        <li>Windows, macOS, Linux</li>
+        <li class="no">iOS и Android</li>
+        <li class="no">4K и выше</li>
+        <li class="no">Облако 100 ГБ</li>
+        <li class="no">Синхронизация устройств</li>
+        <li class="no">Пакетная загрузка</li>
+      </ul>
+      <button class="plan-btn plan-btn-outline">Начать бесплатно</button>
+    </div>
+
+    <div class="price-card featured reveal">
+      <div class="price-tag">🔥 Популярный</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>$</sup>9</div>
+      <div class="plan-period">в месяц · отмена в любой момент</div>
+      <ul class="plan-features">
+        <li>Безлимитные загрузки</li>
+        <li>До 4K / 8K качество</li>
+        <li>Все форматы + архивы</li>
+        <li>Музыка из стримов</li>
+        <li>Облако 100 ГБ</li>
+        <li>Синхронизация всех устройств</li>
+        <li>Поделиться ссылкой на файл</li>
+        <li>Windows, macOS, Linux, iOS, Android</li>
+        <li>Авто-сортировка по папкам</li>
+      </ul>
+      <button class="plan-btn plan-btn-filled">Попробовать 30 дней бесплатно</button>
+    </div>
+
+    <div class="price-card reveal">
+      <div class="plan-name">Lifetime</div>
+      <div class="plan-price"><sup>$</sup>49</div>
+      <div class="plan-period">разовая оплата · навсегда</div>
+      <ul class="plan-features">
+        <li>Всё из Pro</li>
+        <li>Все будущие обновления</li>
+        <li>Приоритетная поддержка</li>
+        <li>Ранний доступ к фичам</li>
+      </ul>
+      <button class="plan-btn plan-btn-outline">Купить Lifetime</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<section id="early" class="capture-section">
+  <div class="capture-glow"></div>
+  <div class="capture-box reveal">
+
+    <div class="early-badge">&#127873; Специальное предложение</div>
+
+    <h2>Первые 10 — получают<br><span style="color: var(--accent)">Pro бесплатно</span></h2>
+    <p>Оставь email в числе первых десяти — и получи полный Pro-доступ навсегда, без оплаты.</p>
+
+    <div class="slots-row">
+      <div class="slot taken">1</div>
+      <div class="slot taken">2</div>
+      <div class="slot taken">3</div>
+      <div class="slot taken">4</div>
+      <div class="slot taken">5</div>
+      <div class="slot taken">6</div>
+      <div class="slot active">7</div>
+      <div class="slot">8</div>
+      <div class="slot">9</div>
+      <div class="slot">10</div>
+    </div>
+    <p class="slots-note">Осталось <strong id="slots-left" style="color:var(--accent)">3 места</strong> из 10</p>
+
+    <div class="email-row">
+      <input class="email-input" type="email" placeholder="твой@email.com">
+      <button class="email-submit">Занять место</button>
+    </div>
+    <p class="capture-note">После 10-го — скидка 40% для всех остальных в списке. Спама нет.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo" style="font-size: 1.1rem;">Load<span style="color: var(--accent)">Snap</span></div>
+  <div>© 2026 LoadSnap · В разработке</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // Format chips
+  document.querySelectorAll('.fmt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.fmt-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Загружаем актуальное количество подписчиков с сервера
+  let slotsLeft = 3;
+
+  async function updateSlots(total) {
+    const slots = document.querySelectorAll('.slot');
+    // Помечаем занятые слоты (первые 6 "фейковых" + реальные подписчики)
+    const taken = Math.min(6 + total, 10);
+    slotsLeft = Math.max(10 - taken, 0);
+
+    slots.forEach((slot, i) => {
+      slot.classList.remove('taken', 'active');
+      if (i < taken) {
+        slot.classList.add('taken');
+      } else if (i === taken) {
+        slot.classList.add('active');
+      }
+    });
+
+    const el = document.getElementById('slots-left');
+    el.textContent = slotsLeft + (slotsLeft === 1 ? ' место' : slotsLeft === 0 ? ' мест' : ' места');
+    if (slotsLeft === 0) el.style.color = 'var(--muted)';
+  }
+
+  // Запрашиваем статистику при загрузке страницы
+  fetch('/api/stats')
+    .then(r => r.json())
+    .then(data => updateSlots(data.total))
+    .catch(() => {});
+
+  // Отправка email на сервер
+  const emailBtn = document.querySelector('.email-submit');
+  const emailInput = document.querySelector('.email-input');
+
+  emailBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+
+    if (!email || !email.includes('@')) {
+      emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
+      setTimeout(() => emailInput.style.borderColor = '', 1500);
+      return;
+    }
+
+    emailBtn.disabled = true;
+    emailBtn.textContent = '...';
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        updateSlots(data.total);
+        emailInput.value = '';
+        emailInput.placeholder = data.message;
+        emailInput.style.borderColor = 'rgba(40, 200, 64, 0.4)';
+        emailInput.style.color = '#28c840';
+      } else {
+        emailInput.value = '';
+        emailInput.placeholder = data.error || 'Ошибка, попробуйте позже';
+        emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
+      }
+    } catch {
+      emailInput.value = '';
+      emailInput.placeholder = 'Ошибка сети, попробуйте позже';
+      emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
+    }
+
+    emailBtn.disabled = false;
+    emailBtn.textContent = 'Занять место';
+  });
+
+  // Отправка по Enter
+  emailInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') emailBtn.click();
+  });
+</script>
+</body>
+</html>
