@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables (пароли, ключи)
+.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Landing — база данных и конфиденциальные данные
+js/landing/emails.db
+js/landing/emails.db-journal

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /emails.db
+
+Sitemap: https://loadsnap.io/sitemap.xml

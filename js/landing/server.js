@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const Database = require('better-sqlite3');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -9,6 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- Middleware ---
+
+// Gzip-сжатие — уменьшает размер HTML/CSS/JS в 3-4 раза
+app.use(compression());
 
 app.use(helmet({
   contentSecurityPolicy: false // разрешаем inline-стили и шрифты в лендинге
@@ -82,6 +86,25 @@ function getGeoByIp(ip) {
 }
 
 // --- Роуты ---
+
+// robots.txt для поисковиков
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').sendFile(path.join(__dirname, 'robots.txt'));
+});
+
+// sitemap.xml для поисковиков
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml').sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+// og-image: отдаём русскую или английскую версию по Accept-Language
+// Краулеры соцсетей (Telegram, Facebook, Twitter) получат правильную картинку
+app.get('/og-image.png', (req, res) => {
+  const acceptLang = req.headers['accept-language'] || '';
+  const isRu = acceptLang.toLowerCase().startsWith('ru');
+  const file = isRu ? 'og-image-ru.png' : 'og-image-en.png';
+  res.type('image/png').sendFile(path.join(__dirname, file));
+});
 
 // Отдаем лендинг
 app.get('/', (req, res) => {
@@ -167,8 +190,16 @@ app.get('/api/admin/subscribers', (req, res) => {
   res.json({ total, subscribers: rows });
 });
 
-// Статика (если понадобятся картинки и т.д.)
-app.use(express.static(__dirname));
+// Статика с кэшированием (картинки, шрифты, favicon — кэш на 7 дней)
+app.use(express.static(__dirname, {
+  maxAge: '7d',
+  setHeaders: (res, filePath) => {
+    // HTML не кэшируем — всегда свежая версия
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 // --- Запуск ---
 

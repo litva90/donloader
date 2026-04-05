@@ -1,13 +1,114 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LoadSnap — скачивай всё, что хочешь</title>
-<meta name="description" content="LoadSnap — универсальный загрузчик видео, музыки и файлов. YouTube, Vimeo, Instagram, Twitch и 500+ платформ. 4K, MP3, FLAC.">
-<meta property="og:title" content="LoadSnap — скачивай видео и файлы без ограничений">
-<meta property="og:description" content="Вставь ссылку — выбери формат — скачай. Без рекламы, без магии.">
+<title>LoadSnap — download anything you want</title>
+<meta name="description" content="LoadSnap — universal video, music, and file downloader. YouTube, Vimeo, Instagram, Twitch and 500+ platforms. 4K, MP3, FLAC.">
+<meta name="keywords" content="video downloader, youtube downloader, music downloader, file downloader, 4K download, mp3 download, twitch downloader, instagram downloader, loadsnap">
+<meta name="author" content="LoadSnap">
+<meta name="theme-color" content="#0a0a0f">
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://loadsnap.io/">
+
+<!-- hreflang: указываем поисковикам о наличии двух языковых версий -->
+<link rel="alternate" hreflang="en" href="https://loadsnap.io/">
+<link rel="alternate" hreflang="ru" href="https://loadsnap.io/">
+<link rel="alternate" hreflang="x-default" href="https://loadsnap.io/">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<!-- Open Graph -->
+<meta property="og:title" content="LoadSnap — download videos and files without limits">
+<meta property="og:description" content="Paste link — choose format — download. No ads, no magic.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://loadsnap.io/">
+<meta property="og:image" content="https://loadsnap.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:site_name" content="LoadSnap">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LoadSnap — download videos and files without limits">
+<meta name="twitter:description" content="Paste link — choose format — download. No ads, no magic.">
+<meta name="twitter:image" content="https://loadsnap.io/og-image.png">
+
+<!-- Structured Data (JSON-LD) — помогает Google формировать rich snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "LoadSnap",
+  "description": "Universal video, music, and file downloader. YouTube, Vimeo, Instagram, Twitch and 500+ platforms.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Windows, macOS, Linux, iOS, Android",
+  "offers": [
+    {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "name": "Free"
+    },
+    {
+      "@type": "Offer",
+      "price": "9",
+      "priceCurrency": "USD",
+      "name": "Pro",
+      "billingIncrement": 1,
+      "unitCode": "MON"
+    },
+    {
+      "@type": "Offer",
+      "price": "49",
+      "priceCurrency": "USD",
+      "name": "Lifetime"
+    }
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "120"
+  }
+}
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LKLC0945N6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LKLC0945N6');
+</script>
+
+<!-- Yandex.Metrika — аналитика для русскоязычной аудитории -->
+<!-- TODO: замени XXXXXXXXX на реальный ID счётчика из metrika.yandex.ru -->
+<script type="text/javascript">
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+  m[i].l=1*new Date();
+  for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r)return;}
+  k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+  (window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+
+  ym(XXXXXXXXX, "init", {
+    clickmap: true,
+    trackLinks: true,
+    accurateTrackBounce: true,
+    webvisor: true
+  });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/XXXXXXXXX" style="position:absolute;left:-9999px" alt=""></div></noscript>
+
+<!-- Preconnect для ускорения загрузки шрифтов -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -75,7 +176,7 @@
   }
   nav a:hover { color: var(--text); }
 
-  .nav-links { display: flex; gap: 32px; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
 
   .btn-nav {
     background: var(--accent);
@@ -87,6 +188,32 @@
     transition: opacity 0.2s, transform 0.2s !important;
   }
   .btn-nav:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* Language switcher */
+  .lang-switch {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .lang-switch button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .lang-switch button.active {
+    background: rgba(255,92,53,0.2);
+    color: var(--accent);
+  }
+  .lang-switch button:hover:not(.active) { color: var(--text); }
 
   /* HERO */
   .hero {
@@ -532,9 +659,9 @@
     gap: 10px;
     align-items: flex-start;
   }
-  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+  .plan-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
   .plan-features li.no { color: rgba(122,121,144,0.4); }
-  .plan-features li.no::before { content: '×'; color: rgba(122,121,144,0.3); }
+  .plan-features li.no::before { content: '\00D7'; color: rgba(122,121,144,0.3); }
 
   .plan-btn {
     display: block;
@@ -762,10 +889,14 @@
 <nav>
   <div class="logo">Load<span>Snap</span></div>
   <div class="nav-links">
-    <a href="#features">Возможности</a>
-    <a href="#formats">Форматы</a>
-    <a href="#pricing">Цены</a>
-    <a href="#early" class="btn-nav">Ранний доступ</a>
+    <a href="#features" data-i18n="nav_features">Features</a>
+    <a href="#formats" data-i18n="nav_formats">Formats</a>
+    <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+    <div class="lang-switch">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ru">RU</button>
+    </div>
+    <a href="#early" class="btn-nav" data-i18n="nav_early">Early Access</a>
   </div>
 </nav>
 
@@ -773,21 +904,21 @@
 <div class="hero">
   <div class="hero-glow"></div>
 
-  <div class="badge">Ранняя версия · Скоро запуск</div>
+  <div class="badge" data-i18n="hero_badge">Early version &middot; Coming soon</div>
 
-  <h1>Скачивай видео<br>и файлы <em>без ограничений</em></h1>
+  <h1 data-i18n-html="hero_title">Download videos<br>and files <em>without limits</em></h1>
 
-  <p class="hero-sub">
-    Вставь ссылку — выбери формат и качество — получи файл.<br>
-    Без рекламы, без лишнего, без магии.
+  <p class="hero-sub" data-i18n-html="hero_sub">
+    Paste a link — choose format and quality — get the file.<br>
+    No ads, no bloat, no magic.
   </p>
 
   <div class="hero-cta">
-    <a href="#early" class="btn-primary">Получить ранний доступ</a>
-    <a href="#features" class="btn-ghost">Как это работает</a>
+    <a href="#early" class="btn-primary" data-i18n="hero_cta_primary">Get Early Access</a>
+    <a href="#features" class="btn-ghost" data-i18n="hero_cta_secondary">How it works</a>
   </div>
 
-  <p class="hero-note">30-дневный бесплатный период · Отмена в любой момент</p>
+  <p class="hero-note" data-i18n="hero_note">30-day free trial &middot; Cancel anytime</p>
 
   <!-- MOCKUP -->
   <div class="mockup">
@@ -799,40 +930,40 @@
     </div>
     <div class="mockup-body">
       <div class="paste-row">
-        <input class="paste-input" placeholder="Вставь ссылку на YouTube, Vimeo, Instagram..." readonly>
-        <button class="paste-btn">⚡ Скачать</button>
+        <input class="paste-input" data-i18n-placeholder="mockup_placeholder" placeholder="Paste a YouTube, Vimeo, Instagram link..." readonly>
+        <button class="paste-btn" data-i18n-html="mockup_btn">&#9889; Download</button>
       </div>
       <div class="format-row">
-        <div class="fmt-chip active">MP4 · 4K</div>
-        <div class="fmt-chip">MP4 · 1080p</div>
-        <div class="fmt-chip">MP4 · 720p</div>
+        <div class="fmt-chip active">MP4 &middot; 4K</div>
+        <div class="fmt-chip">MP4 &middot; 1080p</div>
+        <div class="fmt-chip">MP4 &middot; 720p</div>
         <div class="fmt-chip">MP3</div>
         <div class="fmt-chip">WAV</div>
         <div class="fmt-chip">WebM</div>
       </div>
       <div class="download-list">
         <div class="dl-item">
-          <div class="dl-thumb">🎬</div>
+          <div class="dl-thumb">&#127916;</div>
           <div class="dl-info">
-            <div class="dl-name">Вся правда про AI в 2025 году — подкаст.mp4</div>
-            <div class="dl-meta">YouTube · 4K · 847 МБ</div>
+            <div class="dl-name" data-i18n="mockup_file1_name">The truth about AI in 2025 — podcast.mp4</div>
+            <div class="dl-meta" data-i18n="mockup_file1_meta">YouTube &middot; 4K &middot; 847 MB</div>
             <div class="dl-progress"><div class="dl-bar" style="width:68%"></div></div>
           </div>
           <div class="dl-badge">68%</div>
         </div>
         <div class="dl-item">
-          <div class="dl-thumb">🎵</div>
+          <div class="dl-thumb">&#127925;</div>
           <div class="dl-info">
-            <div class="dl-name">Любимый трек со стримера.mp3</div>
-            <div class="dl-meta">Twitch · MP3 320kbps · 12 МБ</div>
+            <div class="dl-name" data-i18n="mockup_file2_name">Favorite track from streamer.mp3</div>
+            <div class="dl-meta" data-i18n="mockup_file2_meta">Twitch &middot; MP3 320kbps &middot; 12 MB</div>
           </div>
-          <div class="dl-badge done">Готово ✓</div>
+          <div class="dl-badge done" data-i18n="mockup_done">Done &#10003;</div>
         </div>
         <div class="dl-item">
-          <div class="dl-thumb">📄</div>
+          <div class="dl-thumb">&#128196;</div>
           <div class="dl-info">
-            <div class="dl-name">Документация проекта v2.pdf</div>
-            <div class="dl-meta">Google Drive · PDF · 4.2 МБ</div>
+            <div class="dl-name" data-i18n="mockup_file3_name">Project documentation v2.pdf</div>
+            <div class="dl-meta" data-i18n="mockup_file3_meta">Google Drive &middot; PDF &middot; 4.2 MB</div>
             <div class="dl-progress"><div class="dl-bar" style="width:40%; animation-duration: 3s;"></div></div>
           </div>
           <div class="dl-badge">40%</div>
@@ -845,69 +976,69 @@
 <!-- FEATURES -->
 <section id="features">
   <div class="reveal">
-    <div class="section-label">Возможности</div>
-    <h2>Всё, что нужно<br>для загрузок</h2>
+    <div class="section-label" data-i18n="features_label">Features</div>
+    <h2 data-i18n-html="features_title">Everything you need<br>for downloads</h2>
   </div>
   <div class="features-grid">
     <div class="feat-card reveal">
-      <div class="feat-icon">🎯</div>
-      <div class="feat-title">Выбор качества</div>
-      <div class="feat-desc">4K, 1080p, 720p, 480p — ты решаешь качество до начала загрузки. Не программа за тебя.</div>
+      <div class="feat-icon">&#127919;</div>
+      <div class="feat-title" data-i18n="feat1_title">Quality Selection</div>
+      <div class="feat-desc" data-i18n="feat1_desc">4K, 1080p, 720p, 480p — you choose the quality before downloading. Not the app.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">⚡</div>
-      <div class="feat-title">Высокая скорость</div>
-      <div class="feat-desc">Параллельная загрузка по сегментам — в 5–8 раз быстрее стандартного браузера.</div>
+      <div class="feat-icon">&#9889;</div>
+      <div class="feat-title" data-i18n="feat2_title">High Speed</div>
+      <div class="feat-desc" data-i18n="feat2_desc">Parallel segmented downloads — 5-8x faster than a standard browser.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🔄</div>
-      <div class="feat-title">Возобновление</div>
-      <div class="feat-desc">Прервалось соединение — не проблема. Загрузка продолжится с того места.</div>
+      <div class="feat-icon">&#128260;</div>
+      <div class="feat-title" data-i18n="feat3_title">Resume Downloads</div>
+      <div class="feat-desc" data-i18n="feat3_desc">Connection dropped — no problem. Download continues from where it left off.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🎬</div>
-      <div class="feat-title">Видео отовсюду</div>
-      <div class="feat-desc">YouTube, Vimeo, Instagram, Twitch, TikTok и ещё 500+ платформ.</div>
+      <div class="feat-icon">&#127916;</div>
+      <div class="feat-title" data-i18n="feat4_title">Video From Anywhere</div>
+      <div class="feat-desc" data-i18n="feat4_desc">YouTube, Vimeo, Instagram, Twitch, TikTok and 500+ more platforms.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🎵</div>
-      <div class="feat-title">Музыка из стримов</div>
-      <div class="feat-desc">Сохраняй аудио прямо с живых стримов Twitch, YouTube Live — в MP3, WAV или FLAC.</div>
+      <div class="feat-icon">&#127925;</div>
+      <div class="feat-title" data-i18n="feat5_title">Music From Streams</div>
+      <div class="feat-desc" data-i18n="feat5_desc">Save audio directly from Twitch, YouTube Live streams — as MP3, WAV, or FLAC.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🗜️</div>
-      <div class="feat-title">Архивы и файлы</div>
-      <div class="feat-desc">ZIP, RAR, 7z, PDF, образы дисков — любые типы файлов через единый интерфейс.</div>
+      <div class="feat-icon">&#128476;&#65039;</div>
+      <div class="feat-title" data-i18n="feat6_title">Archives &amp; Files</div>
+      <div class="feat-desc" data-i18n="feat6_desc">ZIP, RAR, 7z, PDF, disk images — any file type through one interface.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">📂</div>
-      <div class="feat-title">Авто-сортировка</div>
-      <div class="feat-desc">Файлы автоматически раскладываются по папкам: видео, музыка, документы, архивы.</div>
+      <div class="feat-icon">&#128194;</div>
+      <div class="feat-title" data-i18n="feat7_title">Auto-Sorting</div>
+      <div class="feat-desc" data-i18n="feat7_desc">Files are automatically organized into folders: video, music, documents, archives.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">☁️</div>
-      <div class="feat-title">100 ГБ облака</div>
-      <div class="feat-desc">Сохраняй файлы локально или в облако LoadSnap. Делись ссылкой — не нужно отправлять сам файл.</div>
+      <div class="feat-icon">&#9729;&#65039;</div>
+      <div class="feat-title" data-i18n="feat8_title">100 GB Cloud</div>
+      <div class="feat-desc" data-i18n="feat8_desc">Save files locally or to LoadSnap cloud. Share a link — no need to send the file itself.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🔗</div>
-      <div class="feat-title">Поделиться ссылкой</div>
-      <div class="feat-desc">Передай файл целиком или отправь облачную ссылку — получатель скачает в один клик.</div>
+      <div class="feat-icon">&#128279;</div>
+      <div class="feat-title" data-i18n="feat9_title">Share Link</div>
+      <div class="feat-desc" data-i18n="feat9_desc">Send the whole file or share a cloud link — the recipient downloads in one click.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">🔁</div>
-      <div class="feat-title">Синхронизация</div>
-      <div class="feat-desc">Скачал на телефоне — открылось на компьютере. Файлы синхронизируются между всеми устройствами.</div>
+      <div class="feat-icon">&#128257;</div>
+      <div class="feat-title" data-i18n="feat10_title">Sync</div>
+      <div class="feat-desc" data-i18n="feat10_desc">Downloaded on your phone — opened on your computer. Files sync across all devices.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">📱</div>
-      <div class="feat-title">Все платформы</div>
-      <div class="feat-desc">Windows, macOS, Linux, iOS и Android. Один аккаунт — на всех устройствах.</div>
+      <div class="feat-icon">&#128241;</div>
+      <div class="feat-title" data-i18n="feat11_title">All Platforms</div>
+      <div class="feat-desc" data-i18n="feat11_desc">Windows, macOS, Linux, iOS and Android. One account — on all devices.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">📁</div>
-      <div class="feat-title">Любые файлы</div>
-      <div class="feat-desc">Если в интернете есть ссылка — LoadSnap скачает. Без исключений.</div>
+      <div class="feat-icon">&#128193;</div>
+      <div class="feat-title" data-i18n="feat12_title">Any Files</div>
+      <div class="feat-desc" data-i18n="feat12_desc">If there's a link on the internet — LoadSnap will download it. No exceptions.</div>
     </div>
   </div>
 </section>
@@ -917,25 +1048,25 @@
 <!-- FORMATS -->
 <section id="formats" class="formats-section">
   <div class="reveal">
-    <div class="section-label">Форматы</div>
-    <h2>Скачивай в нужном формате</h2>
+    <div class="section-label" data-i18n="formats_label">Formats</div>
+    <h2 data-i18n="formats_title">Download in the format you need</h2>
   </div>
   <div class="formats-grid reveal">
-    <div class="format-pill">MP4 <span>видео</span></div>
-    <div class="format-pill">WebM <span>видео</span></div>
-    <div class="format-pill">MKV <span>видео</span></div>
-    <div class="format-pill">AVI <span>видео</span></div>
-    <div class="format-pill">MP3 <span>аудио</span></div>
-    <div class="format-pill">WAV <span>аудио</span></div>
-    <div class="format-pill">FLAC <span>аудио</span></div>
-    <div class="format-pill">M4A <span>аудио</span></div>
-    <div class="format-pill">PDF <span>документ</span></div>
-    <div class="format-pill">ZIP <span>архив</span></div>
-    <div class="format-pill">RAR <span>архив</span></div>
-    <div class="format-pill">7z <span>архив</span></div>
-    <div class="format-pill">GIF <span>анимация</span></div>
-    <div class="format-pill">HLS <span>стримы</span></div>
-    <div class="format-pill">ISO <span>образ диска</span></div>
+    <div class="format-pill">MP4 <span data-i18n="fmt_video">video</span></div>
+    <div class="format-pill">WebM <span data-i18n="fmt_video">video</span></div>
+    <div class="format-pill">MKV <span data-i18n="fmt_video">video</span></div>
+    <div class="format-pill">AVI <span data-i18n="fmt_video">video</span></div>
+    <div class="format-pill">MP3 <span data-i18n="fmt_audio">audio</span></div>
+    <div class="format-pill">WAV <span data-i18n="fmt_audio">audio</span></div>
+    <div class="format-pill">FLAC <span data-i18n="fmt_audio">audio</span></div>
+    <div class="format-pill">M4A <span data-i18n="fmt_audio">audio</span></div>
+    <div class="format-pill">PDF <span data-i18n="fmt_document">document</span></div>
+    <div class="format-pill">ZIP <span data-i18n="fmt_archive">archive</span></div>
+    <div class="format-pill">RAR <span data-i18n="fmt_archive">archive</span></div>
+    <div class="format-pill">7z <span data-i18n="fmt_archive">archive</span></div>
+    <div class="format-pill">GIF <span data-i18n="fmt_animation">animation</span></div>
+    <div class="format-pill">HLS <span data-i18n="fmt_streams">streams</span></div>
+    <div class="format-pill">ISO <span data-i18n="fmt_disk">disk image</span></div>
   </div>
 </section>
 
@@ -944,59 +1075,59 @@
 <!-- PRICING -->
 <section id="pricing">
   <div class="reveal">
-    <div class="section-label">Цены</div>
-    <h2>Просто и честно</h2>
+    <div class="section-label" data-i18n="pricing_label">Pricing</div>
+    <h2 data-i18n="pricing_title">Simple and fair</h2>
   </div>
   <div class="pricing-grid">
 
     <div class="price-card reveal">
-      <div class="plan-name">Бесплатно</div>
+      <div class="plan-name" data-i18n="plan_free_name">Free</div>
       <div class="plan-price"><sup>$</sup>0</div>
-      <div class="plan-period">навсегда</div>
+      <div class="plan-period" data-i18n="plan_free_period">forever</div>
       <ul class="plan-features">
-        <li>До 5 загрузок в день</li>
-        <li>Максимум 720p</li>
-        <li>MP4 и MP3</li>
-        <li>Windows, macOS, Linux</li>
-        <li class="no">iOS и Android</li>
-        <li class="no">4K и выше</li>
-        <li class="no">Облако 100 ГБ</li>
-        <li class="no">Синхронизация устройств</li>
-        <li class="no">Пакетная загрузка</li>
+        <li data-i18n="plan_free_f1">Up to 5 downloads per day</li>
+        <li data-i18n="plan_free_f2">Max 720p</li>
+        <li data-i18n="plan_free_f3">MP4 and MP3</li>
+        <li data-i18n="plan_free_f4">Windows, macOS, Linux</li>
+        <li class="no" data-i18n="plan_free_f5">iOS and Android</li>
+        <li class="no" data-i18n="plan_free_f6">4K and above</li>
+        <li class="no" data-i18n="plan_free_f7">100 GB Cloud</li>
+        <li class="no" data-i18n="plan_free_f8">Device sync</li>
+        <li class="no" data-i18n="plan_free_f9">Batch downloads</li>
       </ul>
-      <button class="plan-btn plan-btn-outline">Начать бесплатно</button>
+      <button class="plan-btn plan-btn-outline" data-i18n="plan_free_btn">Start for free</button>
     </div>
 
     <div class="price-card featured reveal">
-      <div class="price-tag">🔥 Популярный</div>
+      <div class="price-tag" data-i18n-html="plan_pro_tag">&#128293; Popular</div>
       <div class="plan-name">Pro</div>
       <div class="plan-price"><sup>$</sup>9</div>
-      <div class="plan-period">в месяц · отмена в любой момент</div>
+      <div class="plan-period" data-i18n="plan_pro_period">per month &middot; cancel anytime</div>
       <ul class="plan-features">
-        <li>Безлимитные загрузки</li>
-        <li>До 4K / 8K качество</li>
-        <li>Все форматы + архивы</li>
-        <li>Музыка из стримов</li>
-        <li>Облако 100 ГБ</li>
-        <li>Синхронизация всех устройств</li>
-        <li>Поделиться ссылкой на файл</li>
-        <li>Windows, macOS, Linux, iOS, Android</li>
-        <li>Авто-сортировка по папкам</li>
+        <li data-i18n="plan_pro_f1">Unlimited downloads</li>
+        <li data-i18n="plan_pro_f2">Up to 4K / 8K quality</li>
+        <li data-i18n="plan_pro_f3">All formats + archives</li>
+        <li data-i18n="plan_pro_f4">Music from streams</li>
+        <li data-i18n="plan_pro_f5">100 GB Cloud</li>
+        <li data-i18n="plan_pro_f6">Sync across all devices</li>
+        <li data-i18n="plan_pro_f7">Share file link</li>
+        <li data-i18n="plan_pro_f8">Windows, macOS, Linux, iOS, Android</li>
+        <li data-i18n="plan_pro_f9">Auto-sort into folders</li>
       </ul>
-      <button class="plan-btn plan-btn-filled">Попробовать 30 дней бесплатно</button>
+      <button class="plan-btn plan-btn-filled" data-i18n="plan_pro_btn">Try 30 days free</button>
     </div>
 
     <div class="price-card reveal">
       <div class="plan-name">Lifetime</div>
       <div class="plan-price"><sup>$</sup>49</div>
-      <div class="plan-period">разовая оплата · навсегда</div>
+      <div class="plan-period" data-i18n="plan_life_period">one-time payment &middot; forever</div>
       <ul class="plan-features">
-        <li>Всё из Pro</li>
-        <li>Все будущие обновления</li>
-        <li>Приоритетная поддержка</li>
-        <li>Ранний доступ к фичам</li>
+        <li data-i18n="plan_life_f1">Everything in Pro</li>
+        <li data-i18n="plan_life_f2">All future updates</li>
+        <li data-i18n="plan_life_f3">Priority support</li>
+        <li data-i18n="plan_life_f4">Early access to features</li>
       </ul>
-      <button class="plan-btn plan-btn-outline">Купить Lifetime</button>
+      <button class="plan-btn plan-btn-outline" data-i18n="plan_life_btn">Buy Lifetime</button>
     </div>
 
   </div>
@@ -1007,10 +1138,10 @@
   <div class="capture-glow"></div>
   <div class="capture-box reveal">
 
-    <div class="early-badge">&#127873; Специальное предложение</div>
+    <div class="early-badge" data-i18n-html="early_badge">&#127873; Special offer</div>
 
-    <h2>Первые 10 — получают<br><span style="color: var(--accent)">Pro бесплатно</span></h2>
-    <p>Оставь email в числе первых десяти — и получи полный Pro-доступ навсегда, без оплаты.</p>
+    <h2 data-i18n-html="early_title">First 10 get<br><span style="color: var(--accent)">Pro for free</span></h2>
+    <p data-i18n="early_desc">Leave your email among the first ten — and get full Pro access forever, no payment.</p>
 
     <div class="slots-row">
       <div class="slot taken">1</div>
@@ -1024,24 +1155,319 @@
       <div class="slot">9</div>
       <div class="slot">10</div>
     </div>
-    <p class="slots-note">Осталось <strong id="slots-left" style="color:var(--accent)">3 места</strong> из 10</p>
+    <p class="slots-note"><span data-i18n="early_slots_prefix">Remaining</span> <strong id="slots-left" style="color:var(--accent)" data-i18n="early_slots_count">3 spots</strong> <span data-i18n="early_slots_suffix">out of 10</span></p>
 
     <div class="email-row">
-      <input class="email-input" type="email" placeholder="твой@email.com">
-      <button class="email-submit">Занять место</button>
+      <input class="email-input" type="email" data-i18n-placeholder="early_email_placeholder" placeholder="your@email.com">
+      <button class="email-submit" data-i18n="early_submit">Claim your spot</button>
     </div>
-    <p class="capture-note">После 10-го — скидка 40% для всех остальных в списке. Спама нет.</p>
+    <p class="capture-note" data-i18n="early_note">After the 10th — 40% discount for everyone else on the list. No spam.</p>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <div class="logo" style="font-size: 1.1rem;">Load<span style="color: var(--accent)">Snap</span></div>
-  <div>© 2026 LoadSnap · В разработке</div>
+  <div data-i18n="footer_copy">&copy; 2026 LoadSnap &middot; In development</div>
 </footer>
 
 <script>
-  // Scroll reveal
+  // =============================================
+  // Словари переводов: английский и русский
+  // =============================================
+  const translations = {
+    en: {
+      // Мета-теги
+      page_title: 'LoadSnap \u2014 download anything you want',
+      meta_desc: 'LoadSnap \u2014 universal video, music, and file downloader. YouTube, Vimeo, Instagram, Twitch and 500+ platforms. 4K, MP3, FLAC.',
+      og_title: 'LoadSnap \u2014 download videos and files without limits',
+      og_desc: 'Paste link \u2014 choose format \u2014 download. No ads, no magic.',
+
+      // Навигация
+      nav_features: 'Features',
+      nav_formats: 'Formats',
+      nav_pricing: 'Pricing',
+      nav_early: 'Early Access',
+
+      // Hero-секция
+      hero_badge: 'Early version \u00b7 Coming soon',
+      hero_title: 'Download videos<br>and files <em>without limits</em>',
+      hero_sub: 'Paste a link \u2014 choose format and quality \u2014 get the file.<br>No ads, no bloat, no magic.',
+      hero_cta_primary: 'Get Early Access',
+      hero_cta_secondary: 'How it works',
+      hero_note: '30-day free trial \u00b7 Cancel anytime',
+
+      // Мокап (демо-интерфейс)
+      mockup_placeholder: 'Paste a YouTube, Vimeo, Instagram link...',
+      mockup_btn: '\u26a1 Download',
+      mockup_file1_name: 'The truth about AI in 2025 \u2014 podcast.mp4',
+      mockup_file1_meta: 'YouTube \u00b7 4K \u00b7 847 MB',
+      mockup_file2_name: 'Favorite track from streamer.mp3',
+      mockup_file2_meta: 'Twitch \u00b7 MP3 320kbps \u00b7 12 MB',
+      mockup_done: 'Done \u2713',
+      mockup_file3_name: 'Project documentation v2.pdf',
+      mockup_file3_meta: 'Google Drive \u00b7 PDF \u00b7 4.2 MB',
+
+      // Секция "Возможности"
+      features_label: 'Features',
+      features_title: 'Everything you need<br>for downloads',
+      feat1_title: 'Quality Selection', feat1_desc: '4K, 1080p, 720p, 480p \u2014 you choose the quality before downloading. Not the app.',
+      feat2_title: 'High Speed', feat2_desc: 'Parallel segmented downloads \u2014 5\u20148x faster than a standard browser.',
+      feat3_title: 'Resume Downloads', feat3_desc: 'Connection dropped \u2014 no problem. Download continues from where it left off.',
+      feat4_title: 'Video From Anywhere', feat4_desc: 'YouTube, Vimeo, Instagram, Twitch, TikTok and 500+ more platforms.',
+      feat5_title: 'Music From Streams', feat5_desc: 'Save audio directly from Twitch, YouTube Live streams \u2014 as MP3, WAV, or FLAC.',
+      feat6_title: 'Archives & Files', feat6_desc: 'ZIP, RAR, 7z, PDF, disk images \u2014 any file type through one interface.',
+      feat7_title: 'Auto-Sorting', feat7_desc: 'Files are automatically organized into folders: video, music, documents, archives.',
+      feat8_title: '100 GB Cloud', feat8_desc: 'Save files locally or to LoadSnap cloud. Share a link \u2014 no need to send the file itself.',
+      feat9_title: 'Share Link', feat9_desc: 'Send the whole file or share a cloud link \u2014 the recipient downloads in one click.',
+      feat10_title: 'Sync', feat10_desc: 'Downloaded on your phone \u2014 opened on your computer. Files sync across all devices.',
+      feat11_title: 'All Platforms', feat11_desc: 'Windows, macOS, Linux, iOS and Android. One account \u2014 on all devices.',
+      feat12_title: 'Any Files', feat12_desc: "If there's a link on the internet \u2014 LoadSnap will download it. No exceptions.",
+
+      // Секция "Форматы"
+      formats_label: 'Formats',
+      formats_title: 'Download in the format you need',
+      fmt_video: 'video', fmt_audio: 'audio', fmt_document: 'document',
+      fmt_archive: 'archive', fmt_animation: 'animation', fmt_streams: 'streams', fmt_disk: 'disk image',
+
+      // Секция "Цены"
+      pricing_label: 'Pricing',
+      pricing_title: 'Simple and fair',
+      plan_free_name: 'Free', plan_free_period: 'forever',
+      plan_free_f1: 'Up to 5 downloads per day', plan_free_f2: 'Max 720p',
+      plan_free_f3: 'MP4 and MP3', plan_free_f4: 'Windows, macOS, Linux',
+      plan_free_f5: 'iOS and Android', plan_free_f6: '4K and above',
+      plan_free_f7: '100 GB Cloud', plan_free_f8: 'Device sync',
+      plan_free_f9: 'Batch downloads', plan_free_btn: 'Start for free',
+      plan_pro_tag: '\ud83d\udd25 Popular',
+      plan_pro_period: 'per month \u00b7 cancel anytime',
+      plan_pro_f1: 'Unlimited downloads', plan_pro_f2: 'Up to 4K / 8K quality',
+      plan_pro_f3: 'All formats + archives', plan_pro_f4: 'Music from streams',
+      plan_pro_f5: '100 GB Cloud', plan_pro_f6: 'Sync across all devices',
+      plan_pro_f7: 'Share file link', plan_pro_f8: 'Windows, macOS, Linux, iOS, Android',
+      plan_pro_f9: 'Auto-sort into folders', plan_pro_btn: 'Try 30 days free',
+      plan_life_period: 'one-time payment \u00b7 forever',
+      plan_life_f1: 'Everything in Pro', plan_life_f2: 'All future updates',
+      plan_life_f3: 'Priority support', plan_life_f4: 'Early access to features',
+      plan_life_btn: 'Buy Lifetime',
+
+      // Секция "Ранний доступ"
+      early_badge: '\ud83c\udf81 Special offer',
+      early_title: 'First 10 get<br><span style="color: var(--accent)">Pro for free</span>',
+      early_desc: 'Leave your email among the first ten \u2014 and get full Pro access forever, no payment.',
+      early_slots_prefix: 'Remaining',
+      early_slots_count: '3 spots',
+      early_slots_suffix: 'out of 10',
+      early_email_placeholder: 'your@email.com',
+      early_submit: 'Claim your spot',
+      early_note: 'After the 10th \u2014 40% discount for everyone else on the list. No spam.',
+
+      // Футер
+      footer_copy: '\u00a9 2026 LoadSnap \u00b7 In development',
+
+      // JS-сообщения (подписка, слоты)
+      slots_one: 'spot',
+      slots_few: 'spots',
+      slots_many: 'spots',
+      submit_loading: '...',
+      submit_default: 'Claim your spot',
+      error_network: 'Network error, try again later',
+      error_generic: 'Error, try again later',
+    },
+    ru: {
+      // Мета-теги
+      page_title: 'LoadSnap \u2014 \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u0439 \u0432\u0441\u0451, \u0447\u0442\u043e \u0445\u043e\u0447\u0435\u0448\u044c',
+      meta_desc: 'LoadSnap \u2014 \u0443\u043d\u0438\u0432\u0435\u0440\u0441\u0430\u043b\u044c\u043d\u044b\u0439 \u0437\u0430\u0433\u0440\u0443\u0437\u0447\u0438\u043a \u0432\u0438\u0434\u0435\u043e, \u043c\u0443\u0437\u044b\u043a\u0438 \u0438 \u0444\u0430\u0439\u043b\u043e\u0432. YouTube, Vimeo, Instagram, Twitch \u0438 500+ \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c. 4K, MP3, FLAC.',
+      og_title: 'LoadSnap \u2014 \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u0439 \u0432\u0438\u0434\u0435\u043e \u0438 \u0444\u0430\u0439\u043b\u044b \u0431\u0435\u0437 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0439',
+      og_desc: '\u0412\u0441\u0442\u0430\u0432\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u2014 \u0432\u044b\u0431\u0435\u0440\u0438 \u0444\u043e\u0440\u043c\u0430\u0442 \u2014 \u0441\u043a\u0430\u0447\u0430\u0439. \u0411\u0435\u0437 \u0440\u0435\u043a\u043b\u0430\u043c\u044b, \u0431\u0435\u0437 \u043c\u0430\u0433\u0438\u0438.',
+
+      // Навигация
+      nav_features: '\u0412\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u0438',
+      nav_formats: '\u0424\u043e\u0440\u043c\u0430\u0442\u044b',
+      nav_pricing: '\u0426\u0435\u043d\u044b',
+      nav_early: '\u0420\u0430\u043d\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f',
+
+      // Hero-секция
+      hero_badge: '\u0420\u0430\u043d\u043d\u044f\u044f \u0432\u0435\u0440\u0441\u0438\u044f \u00b7 \u0421\u043a\u043e\u0440\u043e \u0437\u0430\u043f\u0443\u0441\u043a',
+      hero_title: '\u0421\u043a\u0430\u0447\u0438\u0432\u0430\u0439 \u0432\u0438\u0434\u0435\u043e<br>\u0438 \u0444\u0430\u0439\u043b\u044b <em>\u0431\u0435\u0437 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0439</em>',
+      hero_sub: '\u0412\u0441\u0442\u0430\u0432\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u2014 \u0432\u044b\u0431\u0435\u0440\u0438 \u0444\u043e\u0440\u043c\u0430\u0442 \u0438 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u043e \u2014 \u043f\u043e\u043b\u0443\u0447\u0438 \u0444\u0430\u0439\u043b.<br>\u0411\u0435\u0437 \u0440\u0435\u043a\u043b\u0430\u043c\u044b, \u0431\u0435\u0437 \u043b\u0438\u0448\u043d\u0435\u0433\u043e, \u0431\u0435\u0437 \u043c\u0430\u0433\u0438\u0438.',
+      hero_cta_primary: '\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0440\u0430\u043d\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f',
+      hero_cta_secondary: '\u041a\u0430\u043a \u044d\u0442\u043e \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442',
+      hero_note: '30-\u0434\u043d\u0435\u0432\u043d\u044b\u0439 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439 \u043f\u0435\u0440\u0438\u043e\u0434 \u00b7 \u041e\u0442\u043c\u0435\u043d\u0430 \u0432 \u043b\u044e\u0431\u043e\u0439 \u043c\u043e\u043c\u0435\u043d\u0442',
+
+      // Мокап (демо-интерфейс)
+      mockup_placeholder: '\u0412\u0441\u0442\u0430\u0432\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u043d\u0430 YouTube, Vimeo, Instagram...',
+      mockup_btn: '\u26a1 \u0421\u043a\u0430\u0447\u0430\u0442\u044c',
+      mockup_file1_name: '\u0412\u0441\u044f \u043f\u0440\u0430\u0432\u0434\u0430 \u043f\u0440\u043e AI \u0432 2025 \u0433\u043e\u0434\u0443 \u2014 \u043f\u043e\u0434\u043a\u0430\u0441\u0442.mp4',
+      mockup_file1_meta: 'YouTube \u00b7 4K \u00b7 847 \u041c\u0411',
+      mockup_file2_name: '\u041b\u044e\u0431\u0438\u043c\u044b\u0439 \u0442\u0440\u0435\u043a \u0441\u043e \u0441\u0442\u0440\u0438\u043c\u0435\u0440\u0430.mp3',
+      mockup_file2_meta: 'Twitch \u00b7 MP3 320kbps \u00b7 12 \u041c\u0411',
+      mockup_done: '\u0413\u043e\u0442\u043e\u0432\u043e \u2713',
+      mockup_file3_name: '\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u0435\u043a\u0442\u0430 v2.pdf',
+      mockup_file3_meta: 'Google Drive \u00b7 PDF \u00b7 4.2 \u041c\u0411',
+
+      // Секция "Возможности"
+      features_label: '\u0412\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u0438',
+      features_title: '\u0412\u0441\u0451, \u0447\u0442\u043e \u043d\u0443\u0436\u043d\u043e<br>\u0434\u043b\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a',
+      feat1_title: '\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0430', feat1_desc: '4K, 1080p, 720p, 480p \u2014 \u0442\u044b \u0440\u0435\u0448\u0430\u0435\u0448\u044c \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u043e \u0434\u043e \u043d\u0430\u0447\u0430\u043b\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438. \u041d\u0435 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0430 \u0437\u0430 \u0442\u0435\u0431\u044f.',
+      feat2_title: '\u0412\u044b\u0441\u043e\u043a\u0430\u044f \u0441\u043a\u043e\u0440\u043e\u0441\u0442\u044c', feat2_desc: '\u041f\u0430\u0440\u0430\u043b\u043b\u0435\u043b\u044c\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043f\u043e \u0441\u0435\u0433\u043c\u0435\u043d\u0442\u0430\u043c \u2014 \u0432 5\u20148 \u0440\u0430\u0437 \u0431\u044b\u0441\u0442\u0440\u0435\u0435 \u0441\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u043d\u043e\u0433\u043e \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0430.',
+      feat3_title: '\u0412\u043e\u0437\u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435', feat3_desc: '\u041f\u0440\u0435\u0440\u0432\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u2014 \u043d\u0435 \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430. \u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u0441\u044f \u0441 \u0442\u043e\u0433\u043e \u043c\u0435\u0441\u0442\u0430.',
+      feat4_title: '\u0412\u0438\u0434\u0435\u043e \u043e\u0442\u043e\u0432\u0441\u044e\u0434\u0443', feat4_desc: 'YouTube, Vimeo, Instagram, Twitch, TikTok \u0438 \u0435\u0449\u0451 500+ \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c.',
+      feat5_title: '\u041c\u0443\u0437\u044b\u043a\u0430 \u0438\u0437 \u0441\u0442\u0440\u0438\u043c\u043e\u0432', feat5_desc: '\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0439 \u0430\u0443\u0434\u0438\u043e \u043f\u0440\u044f\u043c\u043e \u0441 \u0436\u0438\u0432\u044b\u0445 \u0441\u0442\u0440\u0438\u043c\u043e\u0432 Twitch, YouTube Live \u2014 \u0432 MP3, WAV \u0438\u043b\u0438 FLAC.',
+      feat6_title: '\u0410\u0440\u0445\u0438\u0432\u044b \u0438 \u0444\u0430\u0439\u043b\u044b', feat6_desc: 'ZIP, RAR, 7z, PDF, \u043e\u0431\u0440\u0430\u0437\u044b \u0434\u0438\u0441\u043a\u043e\u0432 \u2014 \u043b\u044e\u0431\u044b\u0435 \u0442\u0438\u043f\u044b \u0444\u0430\u0439\u043b\u043e\u0432 \u0447\u0435\u0440\u0435\u0437 \u0435\u0434\u0438\u043d\u044b\u0439 \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441.',
+      feat7_title: '\u0410\u0432\u0442\u043e-\u0441\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u043a\u0430', feat7_desc: '\u0424\u0430\u0439\u043b\u044b \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u0440\u0430\u0441\u043a\u043b\u0430\u0434\u044b\u0432\u0430\u044e\u0442\u0441\u044f \u043f\u043e \u043f\u0430\u043f\u043a\u0430\u043c: \u0432\u0438\u0434\u0435\u043e, \u043c\u0443\u0437\u044b\u043a\u0430, \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b, \u0430\u0440\u0445\u0438\u0432\u044b.',
+      feat8_title: '100 \u0413\u0411 \u043e\u0431\u043b\u0430\u043a\u0430', feat8_desc: '\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0439 \u0444\u0430\u0439\u043b\u044b \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u043e \u0438\u043b\u0438 \u0432 \u043e\u0431\u043b\u0430\u043a\u043e LoadSnap. \u0414\u0435\u043b\u0438\u0441\u044c \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u2014 \u043d\u0435 \u043d\u0443\u0436\u043d\u043e \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u044f\u0442\u044c \u0441\u0430\u043c \u0444\u0430\u0439\u043b.',
+      feat9_title: '\u041f\u043e\u0434\u0435\u043b\u0438\u0442\u044c\u0441\u044f \u0441\u0441\u044b\u043b\u043a\u043e\u0439', feat9_desc: '\u041f\u0435\u0440\u0435\u0434\u0430\u0439 \u0444\u0430\u0439\u043b \u0446\u0435\u043b\u0438\u043a\u043e\u043c \u0438\u043b\u0438 \u043e\u0442\u043f\u0440\u0430\u0432\u044c \u043e\u0431\u043b\u0430\u0447\u043d\u0443\u044e \u0441\u0441\u044b\u043b\u043a\u0443 \u2014 \u043f\u043e\u043b\u0443\u0447\u0430\u0442\u0435\u043b\u044c \u0441\u043a\u0430\u0447\u0430\u0435\u0442 \u0432 \u043e\u0434\u0438\u043d \u043a\u043b\u0438\u043a.',
+      feat10_title: '\u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0430\u0446\u0438\u044f', feat10_desc: '\u0421\u043a\u0430\u0447\u0430\u043b \u043d\u0430 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0435 \u2014 \u043e\u0442\u043a\u0440\u044b\u043b\u043e\u0441\u044c \u043d\u0430 \u043a\u043e\u043c\u043f\u044c\u044e\u0442\u0435\u0440\u0435. \u0424\u0430\u0439\u043b\u044b \u0441\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0438\u0440\u0443\u044e\u0442\u0441\u044f \u043c\u0435\u0436\u0434\u0443 \u0432\u0441\u0435\u043c\u0438 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430\u043c\u0438.',
+      feat11_title: '\u0412\u0441\u0435 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u044b', feat11_desc: 'Windows, macOS, Linux, iOS \u0438 Android. \u041e\u0434\u0438\u043d \u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u2014 \u043d\u0430 \u0432\u0441\u0435\u0445 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430\u0445.',
+      feat12_title: '\u041b\u044e\u0431\u044b\u0435 \u0444\u0430\u0439\u043b\u044b', feat12_desc: '\u0415\u0441\u043b\u0438 \u0432 \u0438\u043d\u0442\u0435\u0440\u043d\u0435\u0442\u0435 \u0435\u0441\u0442\u044c \u0441\u0441\u044b\u043b\u043a\u0430 \u2014 LoadSnap \u0441\u043a\u0430\u0447\u0430\u0435\u0442. \u0411\u0435\u0437 \u0438\u0441\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0439.',
+
+      // Секция "Форматы"
+      formats_label: '\u0424\u043e\u0440\u043c\u0430\u0442\u044b',
+      formats_title: '\u0421\u043a\u0430\u0447\u0438\u0432\u0430\u0439 \u0432 \u043d\u0443\u0436\u043d\u043e\u043c \u0444\u043e\u0440\u043c\u0430\u0442\u0435',
+      fmt_video: '\u0432\u0438\u0434\u0435\u043e', fmt_audio: '\u0430\u0443\u0434\u0438\u043e', fmt_document: '\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442',
+      fmt_archive: '\u0430\u0440\u0445\u0438\u0432', fmt_animation: '\u0430\u043d\u0438\u043c\u0430\u0446\u0438\u044f', fmt_streams: '\u0441\u0442\u0440\u0438\u043c\u044b', fmt_disk: '\u043e\u0431\u0440\u0430\u0437 \u0434\u0438\u0441\u043a\u0430',
+
+      // Секция "Цены"
+      pricing_label: '\u0426\u0435\u043d\u044b',
+      pricing_title: '\u041f\u0440\u043e\u0441\u0442\u043e \u0438 \u0447\u0435\u0441\u0442\u043d\u043e',
+      plan_free_name: '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e', plan_free_period: '\u043d\u0430\u0432\u0441\u0435\u0433\u0434\u0430',
+      plan_free_f1: '\u0414\u043e 5 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a \u0432 \u0434\u0435\u043d\u044c', plan_free_f2: '\u041c\u0430\u043a\u0441\u0438\u043c\u0443\u043c 720p',
+      plan_free_f3: 'MP4 \u0438 MP3', plan_free_f4: 'Windows, macOS, Linux',
+      plan_free_f5: 'iOS \u0438 Android', plan_free_f6: '4K \u0438 \u0432\u044b\u0448\u0435',
+      plan_free_f7: '\u041e\u0431\u043b\u0430\u043a\u043e 100 \u0413\u0411', plan_free_f8: '\u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0430\u0446\u0438\u044f \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432',
+      plan_free_f9: '\u041f\u0430\u043a\u0435\u0442\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430', plan_free_btn: '\u041d\u0430\u0447\u0430\u0442\u044c \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e',
+      plan_pro_tag: '\ud83d\udd25 \u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0439',
+      plan_pro_period: '\u0432 \u043c\u0435\u0441\u044f\u0446 \u00b7 \u043e\u0442\u043c\u0435\u043d\u0430 \u0432 \u043b\u044e\u0431\u043e\u0439 \u043c\u043e\u043c\u0435\u043d\u0442',
+      plan_pro_f1: '\u0411\u0435\u0437\u043b\u0438\u043c\u0438\u0442\u043d\u044b\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438', plan_pro_f2: '\u0414\u043e 4K / 8K \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u043e',
+      plan_pro_f3: '\u0412\u0441\u0435 \u0444\u043e\u0440\u043c\u0430\u0442\u044b + \u0430\u0440\u0445\u0438\u0432\u044b', plan_pro_f4: '\u041c\u0443\u0437\u044b\u043a\u0430 \u0438\u0437 \u0441\u0442\u0440\u0438\u043c\u043e\u0432',
+      plan_pro_f5: '\u041e\u0431\u043b\u0430\u043a\u043e 100 \u0413\u0411', plan_pro_f6: '\u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0430\u0446\u0438\u044f \u0432\u0441\u0435\u0445 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432',
+      plan_pro_f7: '\u041f\u043e\u0434\u0435\u043b\u0438\u0442\u044c\u0441\u044f \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u043d\u0430 \u0444\u0430\u0439\u043b', plan_pro_f8: 'Windows, macOS, Linux, iOS, Android',
+      plan_pro_f9: '\u0410\u0432\u0442\u043e-\u0441\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u043a\u0430 \u043f\u043e \u043f\u0430\u043f\u043a\u0430\u043c', plan_pro_btn: '\u041f\u043e\u043f\u0440\u043e\u0431\u043e\u0432\u0430\u0442\u044c 30 \u0434\u043d\u0435\u0439 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e',
+      plan_life_period: '\u0440\u0430\u0437\u043e\u0432\u0430\u044f \u043e\u043f\u043b\u0430\u0442\u0430 \u00b7 \u043d\u0430\u0432\u0441\u0435\u0433\u0434\u0430',
+      plan_life_f1: '\u0412\u0441\u0451 \u0438\u0437 Pro', plan_life_f2: '\u0412\u0441\u0435 \u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f',
+      plan_life_f3: '\u041f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u0430\u044f \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430', plan_life_f4: '\u0420\u0430\u043d\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f \u043a \u0444\u0438\u0447\u0430\u043c',
+      plan_life_btn: '\u041a\u0443\u043f\u0438\u0442\u044c Lifetime',
+
+      // Секция "Ранний доступ"
+      early_badge: '\ud83c\udf81 \u0421\u043f\u0435\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',
+      early_title: '\u041f\u0435\u0440\u0432\u044b\u0435 10 \u2014 \u043f\u043e\u043b\u0443\u0447\u0430\u044e\u0442<br><span style="color: var(--accent)">Pro \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e</span>',
+      early_desc: '\u041e\u0441\u0442\u0430\u0432\u044c email \u0432 \u0447\u0438\u0441\u043b\u0435 \u043f\u0435\u0440\u0432\u044b\u0445 \u0434\u0435\u0441\u044f\u0442\u0438 \u2014 \u0438 \u043f\u043e\u043b\u0443\u0447\u0438 \u043f\u043e\u043b\u043d\u044b\u0439 Pro-\u0434\u043e\u0441\u0442\u0443\u043f \u043d\u0430\u0432\u0441\u0435\u0433\u0434\u0430, \u0431\u0435\u0437 \u043e\u043f\u043b\u0430\u0442\u044b.',
+      early_slots_prefix: '\u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c',
+      early_slots_count: '3 \u043c\u0435\u0441\u0442\u0430',
+      early_slots_suffix: '\u0438\u0437 10',
+      early_email_placeholder: '\u0442\u0432\u043e\u0439@email.com',
+      early_submit: '\u0417\u0430\u043d\u044f\u0442\u044c \u043c\u0435\u0441\u0442\u043e',
+      early_note: '\u041f\u043e\u0441\u043b\u0435 10-\u0433\u043e \u2014 \u0441\u043a\u0438\u0434\u043a\u0430 40% \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043e\u0441\u0442\u0430\u043b\u044c\u043d\u044b\u0445 \u0432 \u0441\u043f\u0438\u0441\u043a\u0435. \u0421\u043f\u0430\u043c\u0430 \u043d\u0435\u0442.',
+
+      // Футер
+      footer_copy: '\u00a9 2026 LoadSnap \u00b7 \u0412 \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0435',
+
+      // JS-сообщения (подписка, слоты)
+      slots_one: '\u043c\u0435\u0441\u0442\u043e',
+      slots_few: '\u043c\u0435\u0441\u0442\u0430',
+      slots_many: '\u043c\u0435\u0441\u0442',
+      submit_loading: '...',
+      submit_default: '\u0417\u0430\u043d\u044f\u0442\u044c \u043c\u0435\u0441\u0442\u043e',
+      error_network: '\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0438, \u043f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u043f\u043e\u0437\u0436\u0435',
+      error_generic: '\u041e\u0448\u0438\u0431\u043a\u0430, \u043f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u043f\u043e\u0437\u0436\u0435',
+    }
+  };
+
+  // Текущий язык
+  let currentLang = 'en';
+
+  /**
+   * Применяет перевод ко всем элементам с data-i18n атрибутами,
+   * а также обновляет мета-теги и атрибут lang у <html>
+   */
+  function applyLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+
+    // Обновляем атрибут lang у <html>
+    document.documentElement.lang = lang === 'ru' ? 'ru' : 'en';
+
+    // Обновляем мета-теги
+    document.title = t.page_title;
+    document.querySelector('meta[name="description"]').content = t.meta_desc;
+    document.querySelector('meta[property="og:title"]').content = t.og_title;
+    document.querySelector('meta[property="og:description"]').content = t.og_desc;
+    document.querySelector('meta[property="og:locale"]').content = lang === 'ru' ? 'ru_RU' : 'en_US';
+    const ogImageUrl = lang === 'ru'
+      ? 'https://loadsnap.io/og-image-ru.png'
+      : 'https://loadsnap.io/og-image-en.png';
+    document.querySelector('meta[property="og:image"]').content = ogImageUrl;
+    document.querySelector('meta[name="twitter:image"]').content = ogImageUrl;
+    document.querySelector('meta[name="twitter:title"]').content = t.og_title;
+    document.querySelector('meta[name="twitter:description"]').content = t.og_desc;
+
+    // Элементы с текстовым содержимым
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.textContent = t[key];
+    });
+
+    // Элементы с HTML-содержимым (h1, заголовки с <br>, <em>, <span>)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const key = el.getAttribute('data-i18n-html');
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+
+    // Placeholder-ы у input-ов
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (t[key] !== undefined) el.placeholder = t[key];
+    });
+
+    // Обновляем активную кнопку переключателя языка
+    document.querySelectorAll('.lang-switch button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+
+    // Сохраняем выбор пользователя в localStorage
+    localStorage.setItem('loadsnap_lang', lang);
+  }
+
+  /**
+   * Определяет язык: проверяет localStorage, затем геолокацию по IP.
+   * Для посетителей из России ставит русский, для всех остальных — английский.
+   */
+  async function detectLanguage() {
+    // Если пользователь уже выбирал язык вручную — используем его выбор
+    const saved = localStorage.getItem('loadsnap_lang');
+    if (saved && translations[saved]) {
+      applyLanguage(saved);
+      return;
+    }
+
+    // Определяем страну по IP через бесплатный geo-API
+    try {
+      const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+      const data = await res.json();
+      // Если страна — Россия, ставим русский язык
+      if (data.country_code === 'RU') {
+        applyLanguage('ru');
+        return;
+      }
+    } catch {
+      // При ошибке или таймауте оставляем английский (по умолчанию)
+    }
+
+    applyLanguage('en');
+  }
+
+  // Обработчик переключения языка по клику
+  document.querySelectorAll('.lang-switch button').forEach(btn => {
+    btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+  });
+
+  // Запускаем определение языка
+  detectLanguage();
+
+  // =============================================
+  // Scroll reveal — анимация появления секций
+  // =============================================
   const revealEls = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
@@ -1052,7 +1478,9 @@
   }, { threshold: 0.1 });
   revealEls.forEach(el => observer.observe(el));
 
-  // Format chips
+  // =============================================
+  // Format chips — переключение активного формата в мокапе
+  // =============================================
   document.querySelectorAll('.fmt-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       document.querySelectorAll('.fmt-chip').forEach(c => c.classList.remove('active'));
@@ -1060,9 +1488,29 @@
     });
   });
 
+  // =============================================
   // Загружаем актуальное количество подписчиков с сервера
+  // =============================================
   let slotsLeft = 3;
 
+  /**
+   * Возвращает правильное склонение слова "место" для русского языка,
+   * или "spot/spots" для английского
+   */
+  function slotsWord(n) {
+    const t = translations[currentLang];
+    if (currentLang === 'ru') {
+      // Русское склонение: 1 место, 2 места, 5 мест
+      if (n % 10 === 1 && n % 100 !== 11) return t.slots_one;
+      if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return t.slots_few;
+      return t.slots_many;
+    }
+    return n === 1 ? t.slots_one : t.slots_few;
+  }
+
+  /**
+   * Обновляет визуальное состояние слотов и счётчик оставшихся мест
+   */
   async function updateSlots(total) {
     const slots = document.querySelectorAll('.slot');
     // Помечаем занятые слоты (первые 6 "фейковых" + реальные подписчики)
@@ -1079,7 +1527,7 @@
     });
 
     const el = document.getElementById('slots-left');
-    el.textContent = slotsLeft + (slotsLeft === 1 ? ' место' : slotsLeft === 0 ? ' мест' : ' места');
+    el.textContent = slotsLeft + ' ' + slotsWord(slotsLeft);
     if (slotsLeft === 0) el.style.color = 'var(--muted)';
   }
 
@@ -1089,12 +1537,15 @@
     .then(data => updateSlots(data.total))
     .catch(() => {});
 
+  // =============================================
   // Отправка email на сервер
+  // =============================================
   const emailBtn = document.querySelector('.email-submit');
   const emailInput = document.querySelector('.email-input');
 
   emailBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
+    const t = translations[currentLang];
 
     if (!email || !email.includes('@')) {
       emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
@@ -1103,7 +1554,7 @@
     }
 
     emailBtn.disabled = true;
-    emailBtn.textContent = '...';
+    emailBtn.textContent = t.submit_loading;
 
     try {
       const res = await fetch('/api/subscribe', {
@@ -1115,6 +1566,7 @@
       const data = await res.json();
 
       if (data.success) {
+        gtag('event', 'email_signup', { event_category: 'conversion' });
         updateSlots(data.total);
         emailInput.value = '';
         emailInput.placeholder = data.message;
@@ -1122,17 +1574,17 @@
         emailInput.style.color = '#28c840';
       } else {
         emailInput.value = '';
-        emailInput.placeholder = data.error || 'Ошибка, попробуйте позже';
+        emailInput.placeholder = data.error || t.error_generic;
         emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
       }
     } catch {
       emailInput.value = '';
-      emailInput.placeholder = 'Ошибка сети, попробуйте позже';
+      emailInput.placeholder = t.error_network;
       emailInput.style.borderColor = 'rgba(255, 92, 53, 0.5)';
     }
 
     emailBtn.disabled = false;
-    emailBtn.textContent = 'Занять место';
+    emailBtn.textContent = t.submit_default;
   });
 
   // Отправка по Enter

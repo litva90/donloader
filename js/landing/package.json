@@ -7,9 +7,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.0",
     "better-sqlite3": "^11.6.0",
-    "helmet": "^8.0.0",
-    "express-rate-limit": "^7.4.0"
+    "compression": "^1.8.1",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^8.0.0"
   }
 }
